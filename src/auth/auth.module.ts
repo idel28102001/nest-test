@@ -7,17 +7,15 @@ import { UsersService } from 'src/users/services/users/users.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from 'src/utils/constant';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { config } from 'src/common/config';
-
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     PassportModule,
     JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: config.get('EXPIRES', '60000s') },
+      secret: config.get('SECRET'),
+      signOptions: { expiresIn: config.get('EXPIRES') },
     }),
   ],
   providers: [AuthService, UsersService, LocalStrategy, JwtStrategy],
