@@ -14,9 +14,9 @@ export class AppUpdate {
     ctx.reply('Ждите новых сообщений.');
   }
 
-  @Action(/^Read-([0-9]+)$/)
+  @Action(/^Read-\((.+)\)$/)
   async sendMess(ctx: Context) {
-    const postId = parseInt(ctx.match[1]);
+    const postId = ctx.match[1];
     const post = await this.newsService.getPostById(postId);
     await this.telegramServices.sendMessage(ctx, post);
   }

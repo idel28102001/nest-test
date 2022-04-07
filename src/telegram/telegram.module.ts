@@ -8,9 +8,10 @@ import { PostsEntity } from 'src/news/entities/posts.entity';
 import { ContentEntity } from 'src/news/entities/content.entity';
 import { UsersService } from 'src/users/services/users.service';
 import { UserEntity } from 'src/users/entities/user.entity';
+import { RolesEntity } from 'src/users/entities/roles.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TelegramEntity, PostsEntity, ContentEntity, UserEntity])],
+  imports: [TypeOrmModule.forFeature([TelegramEntity, PostsEntity, ContentEntity, UserEntity, RolesEntity])],
   providers: [AppUpdate, TelegramService, NewsService, UsersService],
 
 })

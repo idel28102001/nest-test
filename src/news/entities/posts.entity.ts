@@ -2,14 +2,14 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'posts' })
 export class PostsEntity {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'bigint', default: Date.now() })
   postedAt: number;
 
   @Column()
-  userId: number;
+  userId: string;
 
   @Column()
   title: string;

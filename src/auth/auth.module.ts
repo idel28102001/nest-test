@@ -9,17 +9,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { config } from 'src/common/config';
 import { UserEntity } from 'src/users/entities/user.entity';
+import { RolesEntity } from 'src/users/entities/roles.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, RolesEntity]),
     PassportModule,
-    JwtModule.register({
-      secret: config.get('SECRET'),
-      signOptions: { expiresIn: config.get('EXPIRES') },
-    }),
+    JwtModule.registerAsync({ useFactory: () => config.getForJwt() }),
   ],
   providers: [AuthService, UsersService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService, LocalStrategy],
 })
-export class AuthModule {}
+export class AuthModule { }

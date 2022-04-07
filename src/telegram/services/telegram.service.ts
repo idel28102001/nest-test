@@ -5,10 +5,28 @@ import { Repository } from 'typeorm';
 import { TelegramEntity } from '../entities/telegram.entity';
 import { PostsEntity } from 'src/news/entities/posts.entity';
 import { ContentEntity } from 'src/news/entities/content.entity';
+import { ConfigFactory, ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TelegramService {
-  constructor(@InjectRepository(TelegramEntity) private readonly telegramRepository: Repository<TelegramEntity>) { }
+  constructor(
+    @InjectRepository(TelegramEntity)
+    private readonly telegramRepository: Repository<TelegramEntity>,
+    private configService: ConfigService //i'll show an example 
+  ) {
+
+    /**
+     * We now have access to all config keys from the config service ..
+     * if you need as example the SECRET 
+     * this.configService.get('SECRET');
+     * but using configService outside classes are not a part of a module . WILL NOT WORK
+     * and you will need to install dotenv lib , and do some extra stuff..
+     * i also can provice an example for that . I worked with dotenv, thanks.))))
+     * Thanks for explaination .
+     * 
+     * importing configService doesn't need to create an instance of it 
+     */
+  }
 
   async addUser(telegramId: number) {
     const user = await this.getByTelegramId(telegramId);

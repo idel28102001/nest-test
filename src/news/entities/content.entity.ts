@@ -2,8 +2,8 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'contents' })
 export class ContentEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   mimetype: string;
@@ -12,7 +12,7 @@ export class ContentEntity {
   originalname: string;
 
   @Column()
-  postId: number;
+  postId: string;
 
   @Column()
   encoding: string;

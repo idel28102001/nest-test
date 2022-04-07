@@ -7,10 +7,12 @@ import { ContentEntity } from './entities/content.entity';
 import { PostsEntity } from './entities/posts.entity';
 import { UsersService } from 'src/users/services/users.service';
 import { TelegramEntity } from 'src/telegram/entities/telegram.entity';
+import { RolesEntity } from 'src/users/entities/roles.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PostsEntity, UserEntity, ContentEntity, TelegramEntity]),
+
+    TypeOrmModule.forFeature([PostsEntity, UserEntity, ContentEntity, TelegramEntity, RolesEntity]),
   ],
   providers: [NewsService, UsersService],
   controllers: [NewsController],

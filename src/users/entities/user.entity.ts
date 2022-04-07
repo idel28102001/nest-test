@@ -10,8 +10,8 @@ import * as bcrypt from 'bcrypt';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({
     nullable: false,
@@ -30,7 +30,4 @@ export class UserEntity extends BaseEntity {
       this.password = bcrypt.hashSync(this.password, salt);
     }
   }
-
-  @Column({ default: 'user' })
-  role: string;
 }

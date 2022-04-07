@@ -28,12 +28,8 @@ export class NewsService {
 
 
   async createPost(dto: postInterface, userId: string) {
-    const { role } = await this.userServices.findUserById(parseInt(userId));
-    if (role !== 'admin') {
-      throw new NotAcceptableException();
-    }
     const { content, ...post } = dto;
-    const currentPost = { ...post, userId: parseInt(userId) };
+    const currentPost = { ...post, userId };
     const { id: postId } = await this.postsRepository.save(currentPost);
     await this.createContents(content, postId);
     await this.sendMessage(dto, postId);
@@ -41,20 +37,20 @@ export class NewsService {
     return { postId };
   }
 
-  async sendMessage(post: postInterface, postId: number) {
+  async sendMessage(post: postInterface, postId: string) {
     const allId = (await this.telegramRepository.find()).map(e => e.telegramId);
     await this.sendAllUsers(allId, post, postId);
   }
 
-  async sendAllUsers(users: number[], post: postInterface, postId: number) {
+  async sendAllUsers(users: number[], post: postInterface, postId: string) {
     await Promise.all(users.map(e => this.app.telegram.sendMessage(e, `<b>${post.title}</b>\n${post.announcement}`, {
       parse_mode: 'HTML', ...Markup.inlineKeyboard([
-        Markup.button.callback('Читать полностью...', `Read-${postId}`),
+        Markup.button.callback('Читать полностью...', `Read-(${postId})`),
       ])
     })));
   }
 
-  async getPostById(postId: number) {
+  async getPostById(postId: string) {
     const post = await this.postsRepository.findOne({ where: { id: postId } });
     const content = await this.contentRepository.find({ where: { postId } });
     return {
@@ -62,7 +58,7 @@ export class NewsService {
     };
   }
 
-  async createContents(content: ContentDto[], postId: number) {
+  async createContents(content: ContentDto[], postId: string) {
     await this.validateContent(content);
     await Promise.all(
       content.map((e) => this.contentRepository.save({ ...e, postId })),
@@ -87,7 +83,7 @@ export class NewsService {
     });
   }
 
-  async findPostById(id: number) {
+  async findPostById(id: string) {
     const post = await this.postsRepository.findOne({ where: { id } });
     if (!post) {
       throw new NotFoundException();
@@ -100,7 +96,7 @@ export class NewsService {
     return posts;
   }
 
-  async deletePost(id: number) {
+  async deletePost(id: string) {
     const post = await this.findPostById(id);
     if (post) {
       if (post.userId === id) {
