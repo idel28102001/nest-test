@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 
-export class NewsDto {
+export class adminDto {
   @ApiProperty()
   @IsNotEmpty()
-  description: string;
+  secret: string;
 }

@@ -1,22 +1,22 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
-export class NewsEntity {
+@Entity({ name: 'posts' })
+export class PostsEntity {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
   @Column({ type: 'bigint', default: Date.now() })
   postedAt: number;
 
-  @Column({ default: false })
-  owner: boolean;
-
-  @Column({ nullable: false })
+  @Column()
   userId: number;
 
-  @Column('text')
-  description = '';
+  @Column()
+  title: string;
 
-  @Column({ nullable: false })
-  username: string;
+  @Column('text')
+  announcement: string;
+
+  @Column('text')
+  description: string;
 }

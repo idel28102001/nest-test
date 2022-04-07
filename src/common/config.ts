@@ -1,6 +1,9 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import entities from '../typeorm';
+import { ContentEntity } from 'src/news/entities/content.entity';
+import { PostsEntity } from 'src/news/entities/posts.entity';
+import { TelegramEntity } from 'src/telegram/entities/telegram.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 class Config {
   private config: ConfigService;
@@ -19,9 +22,16 @@ class Config {
       username: this.get('DB_USERNAME'),
       password: this.get('DB_PASSWORD'),
       database: this.get('DB_NAME'),
-      entities,
+      entities: [UserEntity, PostsEntity, ContentEntity, TelegramEntity],
       synchronize: true,
     };
+  }
+  public getAdminSecret(): string {
+    return this.get<string>('ADMIN_SECRET');
+  }
+
+  public telegramToken(): string {
+    return this.get('TELEGRAM_TOKEN');
   }
 }
 

@@ -2,25 +2,27 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { NewsModule } from './news/news.module';
-import { UsersController } from './users/controllers/users/users.controller';
+import { UsersController } from './users/controllers/users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { config } from './common/config';
 import { ConfigModule } from '@nestjs/config';
-import { EventsModule } from './events/events.module';
+import { config } from './common/config';
+import { TelegramModule } from './telegram/telegram.module';
+import { TelegrafModule } from 'nestjs-telegraf';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    TypeOrmModule.forRootAsync({ useFactory: () => config.getDatabaseOptions() }),
     UsersModule,
     AuthModule,
     NewsModule,
-    TypeOrmModule.forRootAsync({
-      useFactory: () => config.getDatabaseOptions(),
+    TelegrafModule.forRoot({
+      token: config.telegramToken(),
     }),
-    EventsModule,
+    TelegramModule,
   ],
   controllers: [UsersController],
   exports: [],
 })
-export class AppModule {}
+export class AppModule { }

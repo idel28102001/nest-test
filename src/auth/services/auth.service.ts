@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/services/users/users.service';
+import { config } from 'src/common/config';
+import { UsersService } from 'src/users/services/users.service';
 import { comparePasswords } from 'src/utils/bcrypt';
 
 @Injectable()
@@ -8,7 +9,7 @@ export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async validateUser(username: string, password: string) {
     if (username) {
@@ -16,8 +17,8 @@ export class AuthService {
       if (user) {
         const check = comparePasswords(password, user.password);
         if (check) {
-          const { password, ...result } = user;
-          return result;
+          const { id, username, ...result } = user;
+          return { id, username };
         }
       }
     }
@@ -29,5 +30,15 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async makeAdmin(userId: string, secret: string) {
+    const adminSecret = config.getAdminSecret();
+    if (adminSecret !== secret) {
+      throw new NotAcceptableException();
+    }
+    const user = await this.userService.findUserById(parseInt(userId));
+    user.role = 'admin';
+    await this.userService.save(user);
   }
 }
