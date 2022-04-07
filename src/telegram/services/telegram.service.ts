@@ -21,25 +21,26 @@ export class TelegramService {
 
   async sendMessage(ctx: Context, post: PostsEntity & { content: ContentEntity[] }) {
     await this.sendMedias(ctx, post.content);
-    ctx.reply(post.description);
-    ctx.replyWithPoll('Как вам пост?', ['Нравится', 'Не нравится', 'Посмотреть результаты'], { allows_multiple_answers: false, is_anonymous: true });
+    await ctx.reply(post.description);
+    await ctx.replyWithPoll('Как вам пост?', ['Нравится', 'Не нравится', 'Посмотреть результаты'], { allows_multiple_answers: false, is_anonymous: true });
   }
 
   async sendMedias(ctx: Context, content: ContentEntity[]) {
-    content.forEach(cnt => {
+    await Promise.all(this.createMediaPromises(ctx, content));
+  }
+
+  createMediaPromises(ctx: Context, content: ContentEntity[]) {
+    return content.map(cnt => {
       const currType = cnt.mimetype.split('/')[0];
       switch (currType) {
         case 'image': {
-          ctx.replyWithPhoto({ source: cnt.buffer });
-          break;
+          return ctx.replyWithPhoto({ source: cnt.buffer });
         }
         case 'audio': {
-          ctx.replyWithAudio({ source: cnt.buffer });
-          break;
+          return ctx.replyWithAudio({ source: cnt.buffer });
         }
         case 'video': {
-          ctx.replyWithVideo({ source: cnt.source });
-          break;
+          return ctx.replyWithVideo({ source: cnt.source });
         }
       }
     });

@@ -69,7 +69,14 @@ export class NewsService {
     );
   }
 
+  createFolder(src: string) {
+    if (!fs.existsSync(src)) {
+      fs.mkdirSync(src);
+    }
+  }
+
   async validateContent(content: ContentDto[]) {
+    this.createFolder('upload');
     content.map(e => {
       if (e.mimetype.split('/')[0] === 'video') {
         const path = `upload/${e.originalname}`;
