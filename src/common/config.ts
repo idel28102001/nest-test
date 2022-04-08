@@ -1,9 +1,9 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { ContentEntity } from 'src/news/entities/content.entity';
-import { PostsEntity } from 'src/news/entities/posts.entity';
+import { ContentEntity } from 'src/contents/entities/content.entity';
+import { PostsEntity } from 'src/posts/entities/posts.entity';
+import { RolesEntity } from 'src/roles/entities/roles.entity';
 import { TelegramEntity } from 'src/telegram/entities/telegram.entity';
-import { RolesEntity } from 'src/users/entities/roles.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 
 class Config {

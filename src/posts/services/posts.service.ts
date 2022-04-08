@@ -1,27 +1,26 @@
-import { Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersService } from 'src/users/services/users.service';
 import { Repository } from 'typeorm';
-import { ContentEntity } from '../entities/content.entity';
 import { PostsEntity } from '../entities/posts.entity';
 import { postInterface } from '../interfaces/post.interface';
 import { Telegraf, Markup } from 'telegraf';
 import { config } from 'src/common/config';
-import { TelegramEntity } from 'src/telegram/entities/telegram.entity';
 import { ContentDto } from '../dto/content.dto';
 import * as fs from 'fs';
+import { TelegramService } from 'src/telegram/services/telegram.service';
+import { ContentsService } from 'src/contents/services/contents.service';
+import { Context } from 'vm';
+import { Context as Ctx } from 'telegraf';
+import { ContentEntity } from 'src/contents/entities/content.entity';
 
 @Injectable()
-export class NewsService {
+export class PostsService {
   private app = new Telegraf(config.telegramToken());
   constructor(
     @InjectRepository(PostsEntity)
     private readonly postsRepository: Repository<PostsEntity>,
-    @InjectRepository(ContentEntity)
-    private readonly contentRepository: Repository<ContentEntity>,
-    @InjectRepository(TelegramEntity)
-    private readonly telegramRepository: Repository<TelegramEntity>,
-    private readonly userServices: UsersService,
+    private readonly telegramService: TelegramService,
+    private readonly contentsService: ContentsService,
   ) {
 
   }
@@ -38,7 +37,7 @@ export class NewsService {
   }
 
   async sendMessage(post: postInterface, postId: string) {
-    const allId = (await this.telegramRepository.find()).map(e => e.telegramId);
+    const allId = await this.telegramService.getAllUsersTelegamId();
     await this.sendAllUsers(allId, post, postId);
   }
 
@@ -47,40 +46,41 @@ export class NewsService {
       parse_mode: 'HTML', ...Markup.inlineKeyboard([
         Markup.button.callback('Читать полностью...', `Read-(${postId})`),
       ])
+
     })));
   }
 
   async getPostById(postId: string) {
     const post = await this.postsRepository.findOne({ where: { id: postId } });
-    const content = await this.contentRepository.find({ where: { postId } });
+    const content = await this.contentsService.findByPostId(postId);
     return {
       content, ...post
     };
   }
 
   async createContents(content: ContentDto[], postId: string) {
-    await this.validateContent(content);
     await Promise.all(
-      content.map((e) => this.contentRepository.save({ ...e, postId })),
+      content.map(async (e) => {
+        const response = await this.contentsService.save({ ...e, postId });
+        this.saveInFolder(response.source, response.dir, e.buffer);
+        return response;
+      }),
     );
   }
 
-  createFolder(src: string) {
+  saveInFolder(src: string, dir: string, buffer: Buffer) {
+    this.createFolders(dir)
+    fs.writeFileSync(src, buffer);
+  }
+
+  createFolders(src: string) {
+    if (!fs.existsSync('upload')) {
+      fs.mkdirSync('upload')
+    }
+
     if (!fs.existsSync(src)) {
       fs.mkdirSync(src);
     }
-  }
-
-  async validateContent(content: ContentDto[]) {
-    this.createFolder('upload');
-    content.map(e => {
-      if (e.mimetype.split('/')[0] === 'video') {
-        const path = `upload/${e.originalname}`;
-        fs.writeFileSync(path, e.buffer);
-        e.buffer = null;
-        e.source = path;
-      }
-    });
   }
 
   async findPostById(id: string) {
@@ -105,4 +105,36 @@ export class NewsService {
       }
     }
   }
+
+  async sendMessageToTGUser(ctx: Ctx, postId: string) {
+    const post = await this.getPostById(postId);
+    await this.sendMedias(ctx, post.content);
+    await ctx.reply(post.description);
+    await ctx.replyWithPoll('Как вам пост?', ['Нравится', 'Не нравится', 'Посмотреть результаты'], { allows_multiple_answers: false, is_anonymous: true, });
+  }
+
+
+  async sendMedias(ctx: Context, content: ContentEntity[]) {
+    await Promise.all(this.createMediaPromises(ctx, content));
+  }
+
+  createMediaPromises(ctx: Context, content: ContentEntity[]) {
+    return content.map(cnt => {
+      const currType = cnt.mimetype.split('/')[0];
+      switch (currType) {
+        case 'image': {
+          return ctx.replyWithPhoto({ source: cnt.source });
+        }
+        case 'audio': {
+          return ctx.replyWithAudio({ source: cnt.source });
+        }
+        case 'video': {
+          return ctx.replyWithVideo({ source: cnt.source });
+        }
+      }
+    });
+  }
+
+
+
 }

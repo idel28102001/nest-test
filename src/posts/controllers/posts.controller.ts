@@ -16,19 +16,20 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { NewsDto } from 'src/news/dto/post.dto';
-import { NewsService } from 'src/news/services/news.service';
+import { NewsDto } from 'src/posts/dto/post.dto';
+import { PostsService } from 'src/posts/services/posts.service';
+import { ContentDto } from '../dto/content.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('news')
-export class NewsController {
-  constructor(private readonly newsService: NewsService) { }
+export class PostsController {
+  constructor(private readonly newsService: PostsService) { }
 
   @Post('post')
   @UseInterceptors(FilesInterceptor('files'))
   @Roles(Role.Admin)
   async createPost(
-    @UploadedFiles() content: Array<Express.Multer.File>,
+    @UploadedFiles() content: Array<ContentDto>,
     @Body() dto: NewsDto,
     @GetUser() user: UserPayload,
   ) {

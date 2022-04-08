@@ -1,18 +1,15 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
 import { config } from 'src/common/config';
-import { RolesEntity } from 'src/users/entities/roles.entity';
+import { RolesService } from 'src/roles/services/roles.service';
 import { UsersService } from 'src/users/services/users.service';
 import { comparePasswords } from 'src/utils/bcrypt';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UsersService,
-    @InjectRepository(RolesEntity)
-    private readonly rolesRepository: Repository<RolesEntity>,
+    private readonly rolesService: RolesService,
     private jwtService: JwtService,
   ) { }
 
@@ -32,9 +29,9 @@ export class AuthService {
 
   async login(user: any) {
     const { id } = await this.userService.findUserByUsername(user.username);
-    const roles = await this.rolesRepository.find({ where: { userId: id }, select: ['role'] });
+    const roles = await this.rolesService.getRolesArrayById(id);
     const payload = {
-      username: user.username, userId: id, roles: roles.map(e => e.role)
+      username: user.username, userId: id, roles: roles
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -45,9 +42,6 @@ export class AuthService {
     if (secret !== config.get<string>('SECRET')) {
       throw new NotAcceptableException();
     }
-    const role = await this.rolesRepository.findOne({ where: { userId, role: 'admin' } });
-    if (!role) {
-      await this.rolesRepository.save({ userId, role: 'admin' });
-    }
+    await this.rolesService.makeAdmin(userId);
   }
 }

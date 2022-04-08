@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RolesEntity } from 'src/users/entities/roles.entity';
+import { RolesService } from 'src/roles/services/roles.service';
 import { RegisterUserDto } from 'src/users/dto/register.user.dto';
-import { encodePassword } from 'src/utils/bcrypt';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 
@@ -11,8 +10,7 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(RolesEntity)
-    private readonly rolesRepository: Repository<RolesEntity>,
+    private readonly rolesService: RolesService,
   ) { }
   async findUserByUsername(username: string) {
     return await this.userRepository.findOne({ where: { username } });
@@ -23,7 +21,7 @@ export class UsersService {
   async register(user: RegisterUserDto) {
     const newUser = this.userRepository.create({ ...user });
     const currUser = await this.userRepository.save(newUser);
-    const { role } = await this.rolesRepository.save({ userId: currUser.id })
+    const { role } = await this.rolesService.save({ userId: currUser.id });
     return { role, ...currUser };
   }
   async save(user: UserEntity) {
