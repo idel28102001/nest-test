@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   BeforeInsert,
   BeforeUpdate,
   Column,
@@ -8,15 +7,23 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { RolesEntity } from '../../roles/entities/roles.entity';
+import { RolesEntity } from './roles.entity';
 import { PostsEntity } from 'src/posts/entities/posts.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
-  @OneToMany(type => PostsEntity, post => post.userId)
-  @OneToMany(type => RolesEntity, role => role.userId)
   id: string;
+
+  @OneToMany(() => RolesEntity, (role) => role.user, {
+    cascade: true,
+  })
+  roles: RolesEntity[];
+
+  @OneToMany(() => PostsEntity, (post) => post.user, {
+    cascade: true,
+  })
+  posts: PostsEntity[];
 
   @Column({
     nullable: false,

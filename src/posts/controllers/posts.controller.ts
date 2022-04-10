@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
-  ParseIntPipe,
   Post,
   UploadedFiles,
   UseGuards,
@@ -18,14 +16,15 @@ import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { NewsDto } from 'src/posts/dto/post.dto';
 import { PostsService } from 'src/posts/services/posts.service';
+import { getUuid } from '../decorators/isUuid.decorator';
 import { ContentDto } from '../dto/content.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('news')
+@Controller('post')
 export class PostsController {
   constructor(private readonly newsService: PostsService) { }
 
-  @Post('post')
+  @Post()
   @UseInterceptors(FilesInterceptor('files'))
   @Roles(Role.Admin)
   async createPost(
@@ -34,15 +33,15 @@ export class PostsController {
     @GetUser() user: UserPayload,
   ) {
     const { userId } = user;
-    return await this.newsService.createPost(
+    return await this.newsService.makePost(
       { ...dto, content },
       userId,
     );
   }
   @Get(':id')
   @Roles(Role.Admin)
-  async findPost(@Param('id', ParseIntPipe) id: string) {
-    return await this.newsService.findPostById(id);
+  async findPost(@getUuid() id: string) {
+    return await this.newsService.getPostById(id);
   }
 
   @Get()
@@ -52,7 +51,7 @@ export class PostsController {
   }
   @Delete(':id')
   @Roles(Role.Admin)
-  async deletePost(@Param('id', ParseIntPipe) id: string) {
+  async deletePost(@getUuid() id: string) {
     return await this.newsService.deletePost(id);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { PostsEntity } from '../entities/posts.entity';
 import { postInterface } from '../interfaces/post.interface';
 import { Telegraf, Markup } from 'telegraf';
@@ -8,10 +8,11 @@ import { config } from 'src/common/config';
 import { ContentDto } from '../dto/content.dto';
 import * as fs from 'fs';
 import { TelegramService } from 'src/telegram/services/telegram.service';
-import { ContentsService } from 'src/contents/services/contents.service';
 import { Context } from 'vm';
 import { Context as Ctx } from 'telegraf';
-import { ContentEntity } from 'src/contents/entities/content.entity';
+import { UsersService } from 'src/users/services/users.service';
+import { ContentEntity } from '../entities/content.entity';
+import { ContentsService } from './contents.service';
 
 @Injectable()
 export class PostsService {
@@ -21,19 +22,28 @@ export class PostsService {
     private readonly postsRepository: Repository<PostsEntity>,
     private readonly telegramService: TelegramService,
     private readonly contentsService: ContentsService,
+    private readonly usersService: UsersService,
   ) {
 
   }
 
 
-  async createPost(dto: postInterface, userId: string) {
-    const { content, ...post } = dto;
-    const currentPost = { ...post, userId };
-    const { id: postId } = await this.postsRepository.save(currentPost);
-    await this.createContents(content, postId);
-    await this.sendMessage(dto, postId);
+  async makePost(dto: postInterface, userId: string) {
+    const user = await this.usersService.findById(userId, { relations: ['posts'], select: ['posts', 'id'] });
+    const post = await this.createPost(dto);
+    user.posts.push(post);
+    const result = await this.usersService.save(user);
+    const lastPost = result.posts.slice(-1)[0];
+    await this.sendMessage(dto, lastPost.id);
+    return lastPost;
+  }
 
-    return { postId };
+  async createPost(dto: postInterface) {
+    const { content, ...postData } = dto;
+    const post = this.postsRepository.create(postData);
+    const contents = await this.createContents(content);
+    post.contents = contents;
+    return post;
   }
 
   async sendMessage(post: postInterface, postId: string) {
@@ -50,23 +60,27 @@ export class PostsService {
     })));
   }
 
-  async getPostById(postId: string) {
-    const post = await this.postsRepository.findOne({ where: { id: postId } });
-    const content = await this.contentsService.findByPostId(postId);
-    return {
-      content, ...post
-    };
-  }
-
-  async createContents(content: ContentDto[], postId: string) {
+  async createContents(contents: ContentDto[]) {
+    const allContents = [];
     await Promise.all(
-      content.map(async (e) => {
-        const response = await this.contentsService.save({ ...e, postId });
+      contents.map(async (e) => {
+        const response = this.createContent(e);
+        allContents.push(response);
         this.saveInFolder(response.source, response.dir, e.buffer);
         return response;
       }),
     );
+    return allContents;
   }
+
+  createContent(content: ContentDto) {
+    const response = this.contentsService.create(content);
+    response.mimetype = response.mimetype.split('/')[0];
+    response.dir = `upload/${response.mimetype}`;
+    response.source = `${response.dir}/${response.originalname}`;
+    return response;
+  }
+
 
   saveInFolder(src: string, dir: string, buffer: Buffer) {
     this.createFolders(dir)
@@ -83,32 +97,29 @@ export class PostsService {
     }
   }
 
-  async findPostById(id: string) {
-    const post = await this.postsRepository.findOne({ where: { id } });
-    if (!post) {
+  checkUuid(id: string) {
+    const pattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+    return pattern.test(id);
+  }
+
+  async getPostById(id?: string, options?: FindOneOptions<PostsEntity>) {
+    if (this.checkUuid(id)) {
+      return await this.postsRepository.findOne(id, options);;
+    } else {
       throw new NotFoundException();
     }
-    return post;
   }
 
   async getAllPosts() {
-    const posts = await this.postsRepository.find();
-    return posts;
+    return await this.postsRepository.find();
   }
-
   async deletePost(id: string) {
-    const post = await this.findPostById(id);
-    if (post) {
-      if (post.userId === id) {
-        const result = await this.postsRepository.delete(post.id);
-        return result;
-      }
-    }
+    return await this.postsRepository.delete(id);
   }
 
   async sendMessageToTGUser(ctx: Ctx, postId: string) {
-    const post = await this.getPostById(postId);
-    await this.sendMedias(ctx, post.content);
+    const post = await this.getPostById(postId, { relations: ['contents'] });
+    await this.sendMedias(ctx, post.contents);
     await ctx.reply(post.description);
     await ctx.replyWithPoll('Как вам пост?', ['Нравится', 'Не нравится', 'Посмотреть результаты'], { allows_multiple_answers: false, is_anonymous: true, });
   }

@@ -1,19 +1,21 @@
 import { UserEntity } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { ContentEntity } from '../../contents/entities/content.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
+import { ContentEntity } from './content.entity';
 
 @Entity({ name: 'posts' })
 export class PostsEntity {
   @PrimaryGeneratedColumn('uuid')
-  @OneToMany(type => ContentEntity, content => content.postId)
   id: string;
 
-  @Column({ type: 'bigint', default: Date.now() })
-  postedAt: number;
-
-  @Column()
-  @ManyToOne(type => UserEntity, user => user.id)
-  userId: string;
+  @CreateDateColumn()
+  postedAt: Date;
 
   @Column()
   title: string;
@@ -23,4 +25,15 @@ export class PostsEntity {
 
   @Column('text')
   description: string;
+
+  @ManyToOne(() => UserEntity, (user) => user.posts, {
+    onDelete: 'SET NULL',
+  })
+  user: UserEntity;
+
+  @OneToMany(() => ContentEntity, (content) => content.content, {
+    onDelete: 'SET NULL',
+    cascade: true,
+  })
+  contents: ContentEntity[];
 }

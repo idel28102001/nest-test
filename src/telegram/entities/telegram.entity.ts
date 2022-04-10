@@ -2,7 +2,6 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'telegram_users' })
 export class TelegramEntity {
-
   @PrimaryGeneratedColumn('uuid')
   id: number;
 

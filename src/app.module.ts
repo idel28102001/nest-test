@@ -8,14 +8,14 @@ import { ConfigModule } from '@nestjs/config';
 import { config } from './common/config';
 import { TelegramModule } from './telegram/telegram.module';
 import { TelegrafModule } from 'nestjs-telegraf';
-import { RolesModule } from './roles/roles.module';
-import { ContentsModule } from './contents/contents.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRootAsync({ useFactory: () => config.getDatabaseOptions() }),
+    TypeOrmModule.forRootAsync({
+      useFactory: () => config.getDatabaseOptions(),
+    }),
     UsersModule,
     AuthModule,
     PostsModule,
@@ -23,8 +23,6 @@ import { ContentsModule } from './contents/contents.module';
       token: config.telegramToken(),
     }),
     TelegramModule,
-    RolesModule,
-    ContentsModule,
   ],
   controllers: [UsersController],
   exports: [],

@@ -1,11 +1,7 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Context } from 'vm';
-import { Context as Ctx } from 'telegraf';
 import { Repository } from 'typeorm';
 import { TelegramEntity } from '../entities/telegram.entity';
-import { ContentEntity } from 'src/contents/entities/content.entity';
-import { PostsService } from 'src/posts/services/posts.service';
 
 @Injectable()
 export class TelegramService {

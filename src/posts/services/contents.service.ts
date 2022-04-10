@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ContentDto } from 'src/posts/dto/content.dto';
 import { Repository } from 'typeorm';
 import { ContentEntity } from '../entities/content.entity';
 
@@ -16,5 +17,9 @@ export class ContentsService {
 
   async findByPostId(postId: string) {
     return await this.contentRepository.find({ where: { postId } });
+  }
+
+  create(dto: ContentDto) {
+    return this.contentRepository.create(dto);
   }
 }
