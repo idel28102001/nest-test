@@ -2,18 +2,16 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterUserDto } from 'src/users/dto/register.user.dto';
 import { FindOneOptions, Repository } from 'typeorm';
-import { RolesEntity } from '../entities/roles.entity';
 import { UserEntity } from '../entities/user.entity';
+import { Role } from '../enums/role.enum';
 import { userFind } from '../interfaces/userFind.interface';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(RolesEntity)
-    private readonly rolesRepository: Repository<RolesEntity>,
-  ) { }
+    private readonly userRepository: Repository<UserEntity>
+  ) {}
   async findById(id: string, options?: FindOneOptions<UserEntity>) {
     return await this.userRepository.findOne(id, options);
   }
@@ -21,11 +19,9 @@ export class UsersService {
   async findByUsername(username: string, options?: FindOneOptions<UserEntity>) {
     return await this.userRepository.findOne({ where: { username }, ...options });
   }
-  async register(user: RegisterUserDto) {
-    const role = this.rolesRepository.create();
-    const newUser = this.userRepository.create(user);
-    newUser.roles = [role];
-    return await this.userRepository.save(newUser);
+  async register(dto: RegisterUserDto) {
+    const user = this.userRepository.create(dto);
+    return await this.userRepository.save(user);
   }
   async save(user: UserEntity) {
     return await this.userRepository.save(user);
@@ -36,12 +32,11 @@ export class UsersService {
   }
 
   async makeAdmin(data: userFind) {
-    const { haveRole, user } = await this.checkRoleExists(
+    const user = await this.checkRoleExists(
       data
-      , 'admin');
-    if (!haveRole) {
-      const adminRole = this.rolesRepository.create({ role: 'admin' });
-      user.roles.push(adminRole);
+      , Role.ADMIN);
+    if (!user.roles.includes(Role.ADMIN)) {
+      user.roles.push(Role.ADMIN);
       return await this.userRepository.save(user);
     } else {
       throw new ConflictException('Пользователь уже имеет роль admin');
@@ -49,18 +44,26 @@ export class UsersService {
   }
 
   async unmakeAdmin(data: userFind) {
-    const { haveRole, role } = await this.checkRoleExists(data, 'admin');
-    if (haveRole) {
-      return await this.rolesRepository.delete(role.id);
+    const role = Role.ADMIN;
+    const user = await this.checkRoleExists(data, role);
+    if (user.roles.includes(role)) {
+      user.roles = this.removeRole(user.roles, role);
+      return await this.userRepository.save(user);
     } else {
       throw new ConflictException('Пользователь не имеет роль admin');
     }
   }
 
-  async checkRoleExists(data: userFind, role: string) {
-    const user = await this.userRepository.findOne({ where: data, relations: ['roles'], select: ['roles', 'id'] });
-    const haveRole = user.roles.map(e => e.role).includes(role);
-    const userRole = user.roles.find(e => e.role === role);
-    return { user, haveRole, role: userRole };
+  removeRole(array: Role[], role: Role) {
+    const index = array.indexOf(role);
+    if (index !== -1) {
+      array.splice(index, 1);
+    }
+    return array;
+  }
+
+  async checkRoleExists(data: userFind, role: Role) {
+    const user = await this.userRepository.findOne({ where: data, select: ['roles', 'id'] });
+    return user;
   }
 }

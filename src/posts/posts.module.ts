@@ -1,22 +1,21 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PostsService } from './services/posts.service';
 import { PostsController } from './controllers/posts.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsEntity } from './entities/posts.entity';
 import { TelegramModule } from 'src/telegram/telegram.module';
-import { PostUpdate } from './update/post.update';
 import { UsersModule } from 'src/users/users.module';
-import { ContentEntity } from './entities/content.entity';
-import { ContentsService } from './services/contents.service';
+import { UploadModule } from 'src/upload/upload.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PostsEntity, ContentEntity]),
-    TelegramModule,
+    TypeOrmModule.forFeature([PostsEntity]),
+    forwardRef(() => TelegramModule),
     UsersModule,
+    UploadModule
   ],
-  providers: [PostsService, PostUpdate, ContentsService],
+  providers: [PostsService],
   controllers: [PostsController],
-  exports: [PostsService, ContentsService],
+  exports: [PostsService],
 })
 export class PostsModule { }

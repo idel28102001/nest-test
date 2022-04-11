@@ -8,11 +8,11 @@ import {
 } from '@nestjs/common';
 import { GetUser, UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { Role } from 'src/auth/enums/role.enum';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { RegisterUserDto } from 'src/users/dto/register.user.dto';
 import { UsersService } from 'src/users/services/users.service';
+import { Role } from '../enums/role.enum';
 import { UsernameUniquePipe } from '../pipes/username.unique.pipe';
 
 @Controller('user')
@@ -24,14 +24,14 @@ export class UsersController {
   }
 
   @Get('profile')
-  @Roles(Role.User)
+  @Roles(Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   getProfile(@GetUser() user: UserPayload) {
     return user;
   }
 
   @Delete()
-  @Roles(Role.Admin)
+  @Roles(Role.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
   async deleteProfile(@Body() dto: { username: string }) {
     return await this.usersService.delete(dto.username);

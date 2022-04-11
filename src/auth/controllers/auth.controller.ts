@@ -6,12 +6,12 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { AuthService } from 'src/auth/services/auth.service';
+import { Role } from 'src/users/enums/role.enum';
 import { HasAdminPipe } from 'src/users/pipes/hasAdmin.pipe';
 import { GetUser, UserPayload } from '../decorators/get-user.decorator';
 import { Roles } from '../decorators/roles.decorator';
 import { AdminDto } from '../dto/admin.dto';
 import { LoginDto } from '../dto/login.dto';
-import { Role } from '../enums/role.enum';
 import { LocalAuthGuard } from '../guard/local-auth.guard';
 import { RolesGuard } from '../guard/roles.guard';
 
@@ -26,7 +26,7 @@ export class AuthController {
   }
   @Post('make-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.User)
+  @Roles(Role.USER, Role.ADMIN)
   async makeAdmin(
     @Body() dto: AdminDto,
     @GetUser() user: UserPayload) {
@@ -35,7 +35,7 @@ export class AuthController {
 
   @Post('unmake-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.Admin)
+  @Roles(Role.ADMIN)
   async unmakeAdmin(@Body(HasAdminPipe) dto: { username: string }) {
     return await this.authService.unmakeAdmin(dto);
   }

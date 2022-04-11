@@ -1,3 +1,4 @@
+import { UploadEntity } from 'src/upload/entities/upload.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -7,7 +8,6 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { ContentEntity } from './content.entity';
 
 @Entity({ name: 'posts' })
 export class PostsEntity {
@@ -31,9 +31,9 @@ export class PostsEntity {
   })
   user: UserEntity;
 
-  @OneToMany(() => ContentEntity, (content) => content.content, {
+  @OneToMany(() => UploadEntity, upload => upload.post, {
     onDelete: 'SET NULL',
     cascade: true,
   })
-  contents: ContentEntity[];
+  uploads: UploadEntity[];
 }

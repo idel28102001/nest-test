@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, MinLength } from 'class-validator';
 
-export class NewsDto {
+export class PostDto {
   @ApiProperty()
   @IsNotEmpty()
   title: string;
@@ -15,4 +15,6 @@ export class NewsDto {
   @IsNotEmpty()
   @MinLength(150)
   description: string;
+
+  
 }

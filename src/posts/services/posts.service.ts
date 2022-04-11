@@ -2,79 +2,65 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { PostsEntity } from '../entities/posts.entity';
-import { postInterface } from '../interfaces/post.interface';
-import { Telegraf, Markup } from 'telegraf';
-import { config } from 'src/common/config';
-import { ContentDto } from '../dto/content.dto';
+import { UploadDto } from '../../upload/dto/upload.dto';
 import * as fs from 'fs';
 import { TelegramService } from 'src/telegram/services/telegram.service';
 import { Context } from 'vm';
 import { Context as Ctx } from 'telegraf';
 import { UsersService } from 'src/users/services/users.service';
-import { ContentEntity } from '../entities/content.entity';
-import { ContentsService } from './contents.service';
+import { PostDto } from '../dto/post.dto';
+import { UploadEntity } from 'src/upload/entities/upload.entity';
+import { UploadService } from 'src/upload/services/upload.service';
 
 @Injectable()
 export class PostsService {
-  private app = new Telegraf(config.telegramToken());
   constructor(
     @InjectRepository(PostsEntity)
     private readonly postsRepository: Repository<PostsEntity>,
     private readonly telegramService: TelegramService,
-    private readonly contentsService: ContentsService,
+    private readonly uploadService: UploadService,
     private readonly usersService: UsersService,
   ) {
 
   }
 
 
-  async makePost(dto: postInterface, userId: string) {
+  async makePost(postDto: PostDto, uploadDto: UploadDto[], userId: string) {
     const user = await this.usersService.findById(userId, { relations: ['posts'], select: ['posts', 'id'] });
-    const post = await this.createPost(dto);
+    const post = await this.createPost(postDto, uploadDto);
     user.posts.push(post);
     const result = await this.usersService.save(user);
     const lastPost = result.posts.slice(-1)[0];
-    await this.sendMessage(dto, lastPost.id);
+    await this.sendMessage(postDto, lastPost.id);
     return lastPost;
   }
 
-  async createPost(dto: postInterface) {
-    const { content, ...postData } = dto;
-    const post = this.postsRepository.create(postData);
-    const contents = await this.createContents(content);
-    post.contents = contents;
+  async createPost(postDto: PostDto, uploadDto: UploadDto[]) {
+    const post = this.postsRepository.create(postDto);
+    post.uploads = await this.createUploads(uploadDto);
     return post;
   }
 
-  async sendMessage(post: postInterface, postId: string) {
+  async sendMessage(post: PostDto, postId: string) {
     const allId = await this.telegramService.getAllUsersTelegamId();
-    await this.sendAllUsers(allId, post, postId);
+    await this.telegramService.sendAllUsers(allId, post, postId);
   }
 
-  async sendAllUsers(users: number[], post: postInterface, postId: string) {
-    await Promise.all(users.map(e => this.app.telegram.sendMessage(e, `<b>${post.title}</b>\n${post.announcement}`, {
-      parse_mode: 'HTML', ...Markup.inlineKeyboard([
-        Markup.button.callback('Читать полностью...', `Read-(${postId})`),
-      ])
-
-    })));
-  }
-
-  async createContents(contents: ContentDto[]) {
-    const allContents = [];
+  async createUploads(uploadDto: UploadDto[]): Promise<UploadEntity[]> {
+    const allUploads = [];
     await Promise.all(
-      contents.map(async (e) => {
+      uploadDto.map(async (e) => {
         const response = this.createContent(e);
-        allContents.push(response);
+        allUploads.push(response);
         this.saveInFolder(response.source, response.dir, e.buffer);
         return response;
       }),
     );
-    return allContents;
+    return allUploads;
   }
 
-  createContent(content: ContentDto) {
-    const response = this.contentsService.create(content);
+  createContent(content: UploadDto) {
+    const response = this.uploadService.create(content);
     response.mimetype = response.mimetype.split('/')[0];
     response.dir = `upload/${response.mimetype}`;
     response.source = `${response.dir}/${response.originalname}`;
@@ -118,18 +104,18 @@ export class PostsService {
   }
 
   async sendMessageToTGUser(ctx: Ctx, postId: string) {
-    const post = await this.getPostById(postId, { relations: ['contents'] });
-    await this.sendMedias(ctx, post.contents);
+    const post = await this.getPostById(postId, { relations: ['uploads'] });
+    await this.sendMedias(ctx, post.uploads);
     await ctx.reply(post.description);
     await ctx.replyWithPoll('Как вам пост?', ['Нравится', 'Не нравится', 'Посмотреть результаты'], { allows_multiple_answers: false, is_anonymous: true, });
   }
 
 
-  async sendMedias(ctx: Context, content: ContentEntity[]) {
+  async sendMedias(ctx: Context, content: UploadEntity[]) {
     await Promise.all(this.createMediaPromises(ctx, content));
   }
 
-  createMediaPromises(ctx: Context, content: ContentEntity[]) {
+  createMediaPromises(ctx: Context, content: UploadEntity[]) {
     return content.map(cnt => {
       const currType = cnt.mimetype.split('/')[0];
       switch (currType) {

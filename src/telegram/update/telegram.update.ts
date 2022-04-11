@@ -1,16 +1,16 @@
 import { Action, Start, Update } from 'nestjs-telegraf';
 import { Context } from 'vm';
 import { Context as Ctx } from 'telegraf';
-import { TelegramService } from '../../telegram/services/telegram.service';
-import { PostsService } from '../services/posts.service';
+import { TelegramService } from '../services/telegram.service';
+import { PostsService } from 'src/posts/services/posts.service';
 
 
 @Update()
-export class PostUpdate {
+export class TelegramUpdate {
   constructor(
     private readonly postServices: PostsService,
     private readonly telegramService: TelegramService,
-  ) { }
+  ) {}
 
   @Start()
   async startCommand(ctx: Context) {

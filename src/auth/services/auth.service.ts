@@ -9,7 +9,7 @@ export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   async validateUser(username: string, password: string) {
     if (username) {
@@ -26,9 +26,9 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const result = await this.userService.findByUsername(user.username, { relations: ['roles'], select: ['username', 'id', 'roles'] });
+    const result = await this.userService.findByUsername(user.username, { select: ['username', 'id', 'roles'] });
     const { id, ...content } = result;
-    const payload = { ...content, userId: id, roles: content.roles.map(e => e.role) };
+    const payload = { ...content, userId: id };
     return {
       access_token: this.jwtService.sign(payload),
     };

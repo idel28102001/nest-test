@@ -7,18 +7,16 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { RolesEntity } from './roles.entity';
 import { PostsEntity } from 'src/posts/entities/posts.entity';
+import { Role } from '../enums/role.enum';
 
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToMany(() => RolesEntity, (role) => role.user, {
-    cascade: true,
-  })
-  roles: RolesEntity[];
+  @Column({ type: 'enum', array: true, enum: Role, default: [Role.USER]})
+  roles: Role[];
 
   @OneToMany(() => PostsEntity, (post) => post.user, {
     cascade: true,
