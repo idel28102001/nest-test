@@ -32,9 +32,8 @@ export class UsersService {
   }
 
   async makeAdmin(data: userFind) {
-    const user = await this.checkRoleExists(
-      data
-      , Role.ADMIN);
+    const user = await this.userRepository.findOne(
+      data);
     if (!user.roles.includes(Role.ADMIN)) {
       user.roles.push(Role.ADMIN);
       return await this.userRepository.save(user);
@@ -44,10 +43,10 @@ export class UsersService {
   }
 
   async unmakeAdmin(data: userFind) {
-    const role = Role.ADMIN;
-    const user = await this.checkRoleExists(data, role);
-    if (user.roles.includes(role)) {
-      user.roles = this.removeRole(user.roles, role);
+    const user = await this.userRepository.findOne(
+      data);
+    if (user.roles.includes(Role.ADMIN)) {
+      user.roles = this.removeRole(user.roles, Role.ADMIN);
       return await this.userRepository.save(user);
     } else {
       throw new ConflictException('Пользователь не имеет роль admin');
@@ -60,10 +59,5 @@ export class UsersService {
       array.splice(index, 1);
     }
     return array;
-  }
-
-  async checkRoleExists(data: userFind, role: Role) {
-    const user = await this.userRepository.findOne({ where: data, select: ['roles', 'id'] });
-    return user;
   }
 }
