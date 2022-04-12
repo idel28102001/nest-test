@@ -13,12 +13,13 @@ export class AuthService {
 
   async validateUser(username: string, password: string) {
     if (username) {
-      const user = await this.userService.findByUsername(username);
+      const user = await this.userService.findByUsername(username, { select: ['password', 'id', 'username'] });
       if (user) {
         const check = comparePasswords(password, user.password);
         if (check) {
-          const { id, username, ...result } = user;
-          return { id, username };
+          const { password, ...res
+          } = user;
+          return res;
         }
       }
     }
@@ -33,7 +34,6 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
-
   async makeAdmin(userId: string, secret: string) {
     if (secret !== config.get<string>('SECRET')) {
       throw new NotAcceptableException();

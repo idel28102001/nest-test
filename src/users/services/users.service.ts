@@ -16,14 +16,29 @@ export class UsersService {
     return await this.userRepository.findOne(id, options);
   }
 
+  async findByPhone(phone: string, options?: FindOneOptions<UserEntity>) {
+    return await this.userRepository.findOne({where: {phone},...options});
+  }
+
   async findByUsername(username: string, options?: FindOneOptions<UserEntity>) {
     return await this.userRepository.findOne({ where: { username }, ...options });
   }
   async register(dto: RegisterUserDto) {
-    const user = this.userRepository.create(dto);
+    const user = await this.getOrCreate(dto);
+    //console.log(user);
     return await this.userRepository.save(user);
   }
-  async save(user: UserEntity) {
+
+  async getOrCreate(dto: RegisterUserDto) {
+    const us = await this.userRepository.findOne({ where: { phone: dto.phone }, select: ['id', 'phoneCodeHash'] });
+    if (!us) {
+      const user = this.userRepository.create(dto);
+      return user;
+    }
+    return this.userRepository.create({ ...us, ...dto });
+  }
+
+  async save(user) {
     return await this.userRepository.save(user);
   }
 
@@ -59,5 +74,9 @@ export class UsersService {
       array.splice(index, 1);
     }
     return array;
+  }
+
+  create(data) {
+    return this.userRepository.create(data);
   }
 }

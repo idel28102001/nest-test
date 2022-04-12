@@ -15,7 +15,10 @@ export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'enum', array: true, enum: Role, default: [Role.USER]})
+  @Column()
+  phone: string;
+
+  @Column({ type: 'enum', array: true, enum: Role, default: [Role.USER] })
   roles: Role[];
 
   @OneToMany(() => PostsEntity, (post) => post.user, {
@@ -29,15 +32,24 @@ export class UserEntity {
   })
   username: string;
 
-  @Column({ nullable: false, default: '' })
+  @Column({ nullable: false, default: '', select: false})
   password: string;
 
   @BeforeInsert()
   @BeforeUpdate()
-  async hashPassword() {
+  async hashPassword()  {
     if (this.password) {
       const salt = bcrypt.genSaltSync(10, 'a');
       this.password = bcrypt.hashSync(this.password, salt);
     }
   }
+
+  @Column({ nullable: true, select: false })
+  telegramSession: string;
+
+  @Column({ nullable: true, select: false })
+  phoneCodeHash: string;
+
+  @Column({ nullable: true, select: false })
+  telegramCode: string;
 }

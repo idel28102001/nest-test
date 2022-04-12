@@ -11,7 +11,7 @@ import { UploadModule } from 'src/upload/upload.module';
   imports: [
     TypeOrmModule.forFeature([PostsEntity]),
     forwardRef(() => TelegramModule),
-    UsersModule,
+    forwardRef(() => UsersModule),
     UploadModule
   ],
   providers: [PostsService],

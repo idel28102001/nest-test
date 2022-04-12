@@ -15,10 +15,17 @@ export class ValidateService {
     return true;
   }
 
+  async checkExistingPhone(phone: string): Promise<boolean> {
+    const user = await this.usersService.findByPhone(phone);
+    const hasPassword = user ? user.password : null;
+    if (user && hasPassword) {
+      throw new ConflictException('Телефон уже зарегистрирован в системе');
+    }
+    return true;
+  }
+
   async checkRoleExists(username: string, role: Role, reverse = false) {
-    const user = await this.usersService.checkRoleExists({
-      username
-    }, role);
+    const user = await this.usersService.findByUsername(username);
     let haveRole = user.roles.includes(role);
     haveRole = reverse ? !haveRole : haveRole;
     const text = reverse ? 'уже есть' : 'отсутсвует'

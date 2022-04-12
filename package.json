@@ -47,6 +47,7 @@
     "rxjs": "^7.5.5",
     "shelljs": "^0.8.5",
     "telegraf": "^4.7.0",
+    "telegram": "^2.6.9",
     "type-check": "^0.4.0",
     "typeorm": "^0.2.45",
     "uuidv4": "^6.2.13"

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
 import { AuthController } from './controllers/auth.controller';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -11,10 +11,10 @@ import { UsersModule } from 'src/users/users.module';
   imports: [
     JwtModule.registerAsync({ useFactory: () => config.getForJwt() }),
     PassportModule,
-    UsersModule
+    UsersModule,
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService, LocalStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}

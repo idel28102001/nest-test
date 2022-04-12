@@ -1,12 +1,21 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
 
 export class RegisterUserDto {
   @ApiProperty()
   @IsNotEmpty()
-  username: string;
+  username?: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  password: string;
+  password?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsPhoneNumber()
+  phone: string;
+
+
+  @ApiPropertyOptional()
+  phoneCodeHash?: string;
 }

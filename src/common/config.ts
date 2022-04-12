@@ -41,6 +41,10 @@ class Config {
   public telegramToken(): string {
     return this.get('TELEGRAM_TOKEN');
   }
+
+  public getTelegramConfig() {
+    return { apiId: parseInt(this.get<string>('API_ID')), apiHash: this.get<string>('API_HASH') }
+  }
 }
 
 export const config = new Config();
