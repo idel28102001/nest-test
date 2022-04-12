@@ -1,4 +1,4 @@
-import { UploadEntity } from 'src/upload/entities/upload.entity';
+import { UploadEntity } from 'src/uploadM/entities/upload.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import {
   Column,

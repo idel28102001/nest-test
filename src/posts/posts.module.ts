@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsEntity } from './entities/posts.entity';
 import { TelegramModule } from 'src/telegram/telegram.module';
 import { UsersModule } from 'src/users/users.module';
-import { UploadModule } from 'src/upload/upload.module';
+import { UploadModule } from 'src/uploadM/upload.module';
 
 @Module({
   imports: [

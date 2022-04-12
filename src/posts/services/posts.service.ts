@@ -2,15 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { PostsEntity } from '../entities/posts.entity';
-import { UploadDto } from '../../upload/dto/upload.dto';
+import { UploadDto } from '../../uploadM/dto/upload.dto';
 import * as fs from 'fs';
 import { TelegramService } from 'src/telegram/services/telegram.service';
 import { Context } from 'vm';
 import { Context as Ctx } from 'telegraf';
 import { UsersService } from 'src/users/services/users.service';
 import { PostDto } from '../dto/post.dto';
-import { UploadEntity } from 'src/upload/entities/upload.entity';
-import { UploadService } from 'src/upload/services/upload.service';
+import { UploadEntity } from 'src/uploadM/entities/upload.entity';
+import { UploadService } from 'src/uploadM/services/upload.service';
 
 @Injectable()
 export class PostsService {

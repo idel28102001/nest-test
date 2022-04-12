@@ -17,7 +17,7 @@ import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { PostDto } from 'src/posts/dto/post.dto';
 import { PostsService } from 'src/posts/services/posts.service';
-import { UploadDto } from 'src/upload/dto/upload.dto';
+import { UploadDto } from 'src/uploadM/dto/upload.dto';
 import { Role } from 'src/users/enums/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
