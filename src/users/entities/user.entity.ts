@@ -9,6 +9,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PostsEntity } from 'src/posts/entities/posts.entity';
 import { Role } from '../enums/role.enum';
+import { ChannelsEntity } from 'src/channels/entities/channels.entitiy';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -26,18 +27,21 @@ export class UserEntity {
   })
   posts: PostsEntity[];
 
+  @OneToMany(() => ChannelsEntity, channel => channel.user, { cascade: true })
+  channels: ChannelsEntity[];
+
   @Column({
     nullable: false,
     default: '',
   })
   username: string;
 
-  @Column({ nullable: false, default: '', select: false})
+  @Column({ nullable: false, default: '', select: false })
   password: string;
 
   @BeforeInsert()
   @BeforeUpdate()
-  async hashPassword()  {
+  async hashPassword() {
     if (this.password) {
       const salt = bcrypt.genSaltSync(10, 'a');
       this.password = bcrypt.hashSync(this.password, salt);

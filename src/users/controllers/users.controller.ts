@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -11,8 +10,7 @@ import { GetUser, UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { TelegramAuthService } from 'src/telegram/services/telegram.auth.service';
-import { TelegramService } from 'src/telegram/services/telegram.service';
+import { TelegramAuthService } from 'src/telegram/services/telegram-auth.service';
 import { RegisterUserDto } from 'src/users/dto/register.user.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { ConfirmPhoneDto } from '../dto/confirmPhone.dto';

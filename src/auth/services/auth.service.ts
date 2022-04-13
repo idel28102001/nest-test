@@ -13,10 +13,11 @@ export class AuthService {
 
   async validateUser(username: string, password: string) {
     if (username) {
-      const user = await this.userService.findByUsername(username, { select: ['password', 'id', 'username'] });
+      const user = await this.userService.findByUsername(username, { select: ['password', 'id', 'username', 'telegramSession'] });
       if (user) {
         const check = comparePasswords(password, user.password);
         if (check) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password, ...res
           } = user;
           return res;
@@ -27,7 +28,7 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const result = await this.userService.findByUsername(user.username, { select: ['username', 'id', 'roles'] });
+    const result = await this.userService.findByUsername(user.username, { select: ['username', 'id', 'roles', 'phone', 'telegramSession'] });
     const { id, ...content } = result;
     const payload = { ...content, userId: id };
     return {

@@ -9,6 +9,7 @@ import { config } from './common/config';
 import { TelegramModule } from './telegram/telegram.module';
 import { TelegrafModule } from 'nestjs-telegraf';
 import { UploadModule } from './uploadM/upload.module';
+import { ChannelsModule } from './channels/channels.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +26,7 @@ import { UploadModule } from './uploadM/upload.module';
     }),
     TelegramModule,
     UploadModule,
+    ChannelsModule,
   ],
   controllers: [UsersController],
   exports: [],

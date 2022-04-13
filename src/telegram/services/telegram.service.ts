@@ -17,33 +17,35 @@ export class TelegramService {
   private clients: Map<string, TelegramClient> = new Map()
 
   async getTelegramBot(session = '') {
-    const telegramConfig = config.getTelegramConfig();
     const token = config.telegramToken();
-    const stringSession = new StringSession(session);
+    if (this.clients.has(token)) return this.clients.get(token); // Возвращаем клиента, если таковой - есть
+    const telegramConfig = config.getTelegramConfig();// Получаем конфиг от приложения телеграма
+    const stringSession = new StringSession(session);// Создаём сессию
     const client = new TelegramClient(
       stringSession,
       telegramConfig.apiId,
       telegramConfig.apiHash,
       { connectionRetries: 5 }
     )
-    await client.start({ botAuthToken: token });
-    return client;
+    this.clients.set(token, client); // Сохраняем в "базу"
+    await client.start({ botAuthToken: token });// Конектимся
+    return client;// Вовзращаем
   }
 
 
   async getTelegramClient(phone: string, session = '') {
-    if (this.clients.has(phone)) return this.clients.get(phone);
-    const telegramConfig = config.getTelegramConfig();
-    const stringSession = new StringSession(session);
-    const client = new TelegramClient(
+    if (this.clients.has(phone)) return this.clients.get(phone); // Возвращаем клиента, если таковой - есть
+    const telegramConfig = config.getTelegramConfig(); // Получаем конфиг от приложения телеграма
+    const stringSession = new StringSession(session); // Создаём сессию
+    const client = new TelegramClient( // Создаем клиента
       stringSession,
       telegramConfig.apiId,
       telegramConfig.apiHash,
       { connectionRetries: 5 }
     )
-    this.clients.set(phone, client);
-    await client.connect()
-    return client;
+    this.clients.set(phone, client); // Сохраняем в "базу"
+    await client.connect() // Конектимся
+    return client; // Вовзращаем
   }
 
 

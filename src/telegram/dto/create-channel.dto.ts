@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
 export class CreateChannelDto {
@@ -9,8 +9,4 @@ export class CreateChannelDto {
   @ApiProperty()
   @IsString()
   about: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  address?: string;
 }
