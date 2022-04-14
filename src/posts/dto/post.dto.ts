@@ -1,7 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, MinLength } from 'class-validator';
+import { IsNotEmpty, IsUUID, MinLength } from 'class-validator';
 
 export class PostDto {
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID()
+  channelId: string;
+
   @ApiProperty()
   @IsNotEmpty()
   title: string;

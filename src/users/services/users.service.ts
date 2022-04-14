@@ -17,7 +17,7 @@ export class UsersService {
   }
 
   async findByPhone(phone: string, options?: FindOneOptions<UserEntity>) {
-    return await this.userRepository.findOne({where: {phone},...options});
+    return await this.userRepository.findOne({ where: { phone }, ...options });
   }
 
   async findByUsername(username: string, options?: FindOneOptions<UserEntity>) {
@@ -25,7 +25,6 @@ export class UsersService {
   }
   async register(dto: RegisterUserDto) {
     const user = await this.getOrCreate(dto);
-    //console.log(user);
     return await this.userRepository.save(user);
   }
 

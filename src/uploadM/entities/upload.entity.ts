@@ -1,13 +1,6 @@
-import { PostsEntity } from 'src/posts/entities/posts.entity';
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'uploads' })
-export class UploadEntity {
+export abstract class UploadEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -20,14 +13,11 @@ export class UploadEntity {
   originalname: string;
 
   @Column({ default: '' })
-  source: string;
+  url: string;
 
   @Column({ default: '' })
   dir: string;
 
-
-  @ManyToOne(() => PostsEntity, post => post.uploads, {
-    onDelete: 'CASCADE',
-  })
-  post: PostsEntity;
+  @Column({default: 0})
+  size: number;
 }

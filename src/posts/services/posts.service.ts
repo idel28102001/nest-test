@@ -4,36 +4,59 @@ import { FindOneOptions, Repository } from 'typeorm';
 import { PostsEntity } from '../entities/posts.entity';
 import { UploadDto } from '../../uploadM/dto/upload.dto';
 import * as fs from 'fs';
-import { TelegramService } from 'src/telegram/services/telegram.service';
 import { Context } from 'vm';
 import { Context as Ctx } from 'telegraf';
 import { UsersService } from 'src/users/services/users.service';
 import { PostDto } from '../dto/post.dto';
-import { UploadEntity } from 'src/uploadM/entities/upload.entity';
-import { UploadService } from 'src/uploadM/services/upload.service';
+import { PostUploadEntity } from 'src/uploadM/entities/post-upload.entity';
+import { ChannelService } from 'src/channels/services/channel.service';
+import { UploadPostService } from './upload-post.service';
+import { ChannelRepService } from 'src/channels/services/channel-rep.service';
+import { UserPayload } from 'src/auth/decorators/get-user.decorator';
+import { Api, TelegramClient } from 'telegram';
+import { TelegramService } from 'src/telegram/services/telegram.service';
+import { TelegramMessagesService } from 'src/telegram/services/telegram-messages.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(PostsEntity)
     private readonly postsRepository: Repository<PostsEntity>,
-    private readonly telegramService: TelegramService,
-    private readonly uploadService: UploadService,
-    private readonly usersService: UsersService,
+    private readonly uploadPostService: UploadPostService,
+    private readonly telegramMessagesService: TelegramMessagesService,
+    //private readonly usersService: UsersService,
+    private readonly channelRepSerivce: ChannelRepService,
   ) {
 
   }
 
 
-  async makePost(postDto: PostDto, uploadDto: UploadDto[], userId: string) {
-    const user = await this.usersService.findById(userId, { relations: ['posts'], select: ['posts', 'id'] });
+  async makePost(postDto: PostDto, uploadDto: UploadDto[], user: UserPayload) {
+    console.log();
+    const channel = await this.channelRepSerivce.findById(postDto.channelId, { relations: ['posts'], select: ['posts', 'id', 'channelId'] });
     const post = await this.createPost(postDto, uploadDto);
-    user.posts.push(post);
-    const result = await this.usersService.save(user);
-    const lastPost = result.posts.slice(-1)[0];
-    await this.sendMessage(postDto, lastPost.id);
-    return lastPost;
+    await this.telegramMessagesService.sendPost(user, channel.channelId, post.uploads);
+    // user.posts.push(post);
+    // const result = await this.usersService.save(user);
+    // const lastPost = result.posts.slice(-1)[0];
+    //await this.sendMessage(postDto, lastPost.id);
+    //return lastPost;
+    return [post, channel];
   }
+
+  // async sendMessage(user: UserPayload, chId: string) {
+  //   const client = await this.telegramService.getTelegramClient(user.phone, user.telegramSession);
+  //   const channelId = await this.telegramService.makeIdChannel(chId, client);
+
+  //   const message = new Api.messages.SendMessage({
+  //     peer: channelId,
+  //     message: 'Hello!',
+  //   })
+  //   return await client.invoke(message);
+  // }
+
+
+
 
   async createPost(postDto: PostDto, uploadDto: UploadDto[]) {
     const post = this.postsRepository.create(postDto);
@@ -41,30 +64,22 @@ export class PostsService {
     return post;
   }
 
-  async sendMessage(post: PostDto, postId: string) {
-    const allId = await this.telegramService.getAllUsersTelegamId();
-    await this.telegramService.sendAllUsers(allId, post, postId);
-  }
+  // async sendMessage(post: PostDto, postId: string) {
+  //   const allId = await this.telegramService.getAllUsersTelegamId();
+  //   await this.telegramService.sendAllUsers(allId, post, postId);
+  // }
 
-  async createUploads(uploadDto: UploadDto[]): Promise<UploadEntity[]> {
+  async createUploads(uploadDto: UploadDto[]): Promise<PostUploadEntity[]> {
     const allUploads = [];
     await Promise.all(
       uploadDto.map(async (e) => {
-        const response = this.createContent(e);
+        const response = this.uploadPostService.createUpload(e);
         allUploads.push(response);
-        this.saveInFolder(response.source, response.dir, e.buffer);
+        this.saveInFolder(response.url, response.dir, e.buffer);
         return response;
       }),
     );
     return allUploads;
-  }
-
-  createContent(content: UploadDto) {
-    const response = this.uploadService.create(content);
-    response.mimetype = response.mimetype.split('/')[0];
-    response.dir = `upload/${response.mimetype}`;
-    response.source = `${response.dir}/${response.originalname}`;
-    return response;
   }
 
 
@@ -111,22 +126,22 @@ export class PostsService {
   }
 
 
-  async sendMedias(ctx: Context, content: UploadEntity[]) {
+  async sendMedias(ctx: Context, content: PostUploadEntity[]) {
     await Promise.all(this.createMediaPromises(ctx, content));
   }
 
-  createMediaPromises(ctx: Context, content: UploadEntity[]) {
+  createMediaPromises(ctx: Context, content: PostUploadEntity[]) {
     return content.map(cnt => {
       const currType = cnt.mimetype.split('/')[0];
       switch (currType) {
         case 'image': {
-          return ctx.replyWithPhoto({ source: cnt.source });
+          return ctx.replyWithPhoto({ source: cnt.url });
         }
         case 'audio': {
-          return ctx.replyWithAudio({ source: cnt.source });
+          return ctx.replyWithAudio({ source: cnt.url });
         }
         case 'video': {
-          return ctx.replyWithVideo({ source: cnt.source });
+          return ctx.replyWithVideo({ source: cnt.url });
         }
       }
     });

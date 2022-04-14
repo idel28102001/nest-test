@@ -6,12 +6,14 @@ import { PostsEntity } from './entities/posts.entity';
 import { TelegramModule } from 'src/telegram/telegram.module';
 import { UsersModule } from 'src/users/users.module';
 import { UploadModule } from 'src/uploadM/upload.module';
+import { ChannelsModule } from 'src/channels/channels.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PostsEntity]),
-    forwardRef(() => TelegramModule),
-    forwardRef(() => UsersModule),
+    TelegramModule,
+    //forwardRef(() => UsersModule),
+    ChannelsModule,
     UploadModule
   ],
   providers: [PostsService],

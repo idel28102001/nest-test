@@ -1,25 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UploadDto } from '../dto/upload.dto';
-import { UploadEntity } from '../entities/upload.entity';
 
 @Injectable()
-export class UploadService {
-  constructor(@InjectRepository(UploadEntity)
-  private readonly contentRepository: Repository<UploadEntity>) {
-
-  }
+export class UploadService<T> {
+  repository: any;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  constructor() {}
   async save<T>(data: T) {
-    const entity = this.contentRepository.create(data);
-    return await this.contentRepository.save(entity);
+    const entity = this.repository.create(data);
+    return await this.repository.save(entity);
+  }
+  create(dto: T) {
+    return this.repository.create(dto);
   }
 
-  async findByPostId(postId: string) {
-    return await this.contentRepository.find({ where: { postId } });
-  }
-
-  create(dto: UploadDto) {
-    return this.contentRepository.create(dto);
+  createUpload(content: T) {
+    const response = this.repository.create(content);
+    response.mimetype = response.mimetype.split('/')[0];
+    response.dir = `upload/${response.mimetype}`;
+    response.url = `${response.dir}/${response.originalname}`;
+    return response;
   }
 }

@@ -33,10 +33,9 @@ export class PostsController {
     @Body() dto: PostDto,
     @GetUser() user: UserPayload,
   ) {
-    const { userId } = user;
     return await this.newsService.makePost(
       dto, content,
-      userId,
+      user,
     );
   }
   @Get(':id')

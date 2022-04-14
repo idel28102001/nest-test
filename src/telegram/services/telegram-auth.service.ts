@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfirmPhoneDto } from 'src/users/dto/confirmPhone.dto';
+import { ConfirmPhoneDto } from 'src/auth/dto/confirmPhone.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { Api } from 'telegram';
 import { TelegramService } from './telegram.service';

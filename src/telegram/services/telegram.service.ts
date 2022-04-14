@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { config } from 'src/common/config';
 import { PostDto } from 'src/posts/dto/post.dto';
@@ -7,6 +7,7 @@ import { StringSession } from 'telegram/sessions';
 import { TelegramClient } from 'telegram';
 import { Repository } from 'typeorm';
 import { TelegramEntity } from '../entities/telegram.entity';
+import * as BigInt from 'big-integer';
 
 @Injectable()
 export class TelegramService {
@@ -15,6 +16,22 @@ export class TelegramService {
     private readonly telegramRepository: Repository<TelegramEntity>,) {}
 
   private clients: Map<string, TelegramClient> = new Map()
+
+
+
+  async makeIdChannel(chanId: string, client: TelegramClient) {
+    const id = BigInt(`${'-100'}${chanId}`);
+    // '-100ID' - Отвечает за каналы или за большие группы
+    // '-ID' - отвечает за малые группы
+    // 'ID' - отвечает за пользователей
+    try {
+      return await client.getEntity(id) // Создаём id канала
+    }
+    catch (err) {
+      throw new BadRequestException(err);
+    }
+  }
+
 
   async getTelegramBot(session = '') {
     const token = config.telegramToken();

@@ -1,4 +1,6 @@
-import { UploadEntity } from 'src/uploadM/entities/upload.entity';
+import { ChannelsEntity } from 'src/channels/entities/channels.entitiy';
+import { PostUploadEntity } from 'src/uploadM/entities/post-upload.entity';
+
 import { UserEntity } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -26,14 +28,14 @@ export class PostsEntity {
   @Column('text')
   description: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.posts, {
+  @ManyToOne(() => ChannelsEntity, (user) => user.posts, {
     onDelete: 'SET NULL',
   })
-  user: UserEntity;
+  channel: ChannelsEntity;
 
-  @OneToMany(() => UploadEntity, upload => upload.post, {
+  @OneToMany(() => PostUploadEntity, upload => upload.post, {
     onDelete: 'SET NULL',
     cascade: true,
   })
-  uploads: UploadEntity[];
+  uploads: PostUploadEntity[];
 }

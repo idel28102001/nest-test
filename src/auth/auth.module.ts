@@ -7,9 +7,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { config } from 'src/common/config';
 import { UsersModule } from 'src/users/users.module';
+import { TelegramModule } from 'src/telegram/telegram.module';
 @Module({
   imports: [
     JwtModule.registerAsync({ useFactory: () => config.getForJwt() }),
+    TelegramModule,
     PassportModule,
     UsersModule,
   ],

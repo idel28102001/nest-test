@@ -22,11 +22,6 @@ export class UserEntity {
   @Column({ type: 'enum', array: true, enum: Role, default: [Role.USER] })
   roles: Role[];
 
-  @OneToMany(() => PostsEntity, (post) => post.user, {
-    cascade: true,
-  })
-  posts: PostsEntity[];
-
   @OneToMany(() => ChannelsEntity, channel => channel.user, { cascade: true })
   channels: ChannelsEntity[];
 
