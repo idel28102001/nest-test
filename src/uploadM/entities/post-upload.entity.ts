@@ -1,11 +1,12 @@
-import { PostsEntity } from 'src/posts/entities/posts.entity';
+
+import { PostsChannelEntity } from 'src/posts/entities/posts-channel.entity';
 import { Entity, ManyToOne } from 'typeorm';
 import { UploadEntity } from './upload.entity';
 @Entity({ name: 'post_upload' })
 export class PostUploadEntity extends UploadEntity {
 
-  @ManyToOne(() => PostsEntity, post => post.uploads, {
+  @ManyToOne(() => PostsChannelEntity, post => post.uploads, {
     onDelete: 'CASCADE',
   })
-  post: PostsEntity;
+  post: PostsChannelEntity;
 }

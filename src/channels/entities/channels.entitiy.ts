@@ -1,7 +1,7 @@
-import { PostsEntity } from 'src/posts/entities/posts.entity';
+import { PostsChannelEntity } from 'src/posts/entities/posts-channel.entity';
 import { ChannelPhotoEntity } from 'src/uploadM/entities/channel-photo.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('channels')
 export class ChannelsEntity {
@@ -30,9 +30,9 @@ export class ChannelsEntity {
   photo: ChannelPhotoEntity;
 
 
-  @OneToMany(() => PostsEntity, (post) => post.channel, {
+  @OneToMany(() => PostsChannelEntity, (post) => post.channel, {
     cascade: true,
   })
-  posts: PostsEntity[];
+  posts: PostsChannelEntity[];
 
 }

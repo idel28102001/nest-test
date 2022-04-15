@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { getChannelInfoInterface } from 'src/channels/interfaces/get-channel-info.interface';
 import { UploadDto } from 'src/uploadM/dto/upload.dto';
@@ -6,28 +6,42 @@ import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/create-channel.dto';
 import { editPhotoDto } from '../dto/edit-photo.dto';
 import { editTitleDto } from '../dto/edit-title.dto';
-import { TelegramService } from '../../telegram/services/telegram.service';
 import { TelegramChannelService } from '../../telegram/services/telegramm-channel.service';
 import { ChannelRepService } from './channel-rep.service';
 import { UploadChannelService } from 'src/uploadM/services/upload-channel.service';
+import { PostChannelDto } from 'src/posts/dto/post-channel.dto';
+import { PostsChannelService } from 'src/posts/services/posts-channel.service';
 
 @Injectable()
 export class ChannelService {
   constructor(
-    private readonly telegramService: TelegramService,
     private readonly usersService: UsersService,
-    private readonly channelsService: TelegramChannelService,
+    private readonly telegramChannelService: TelegramChannelService,
     private readonly channelRepService: ChannelRepService,
     private readonly uploadChannelService: UploadChannelService,
+    private readonly postsChannelService: PostsChannelService,
   ) {}
+
+
+  async makePost(postDto: PostChannelDto, uploadDto: UploadDto[], user: UserPayload) {
+    const channel = await this.channelRepService.findById(postDto.channelId, { relations: ['posts'], select: ['posts', 'id', 'channelId'] });
+    const post = await this.postsChannelService.createPost(postDto, uploadDto);
+    await this.postsChannelService.sendPost(user, channel.channelId, uploadDto);
+    // user.posts.push(post);
+    // const result = await this.usersService.save(user);
+    // const lastPost = result.posts.slice(-1)[0];
+    // await this.sendMessage(postDto, lastPost.id);
+    // return lastPost;
+    // return [post, channel];
+  }
 
 
 
   async createChannel(userPayload: UserPayload, dto: CreateChannelDto) {
+    const { phone, telegramSession } = userPayload; // Для канала и клиента
     const { title, about } = dto; // Для канала
     const user = await this.usersService.findById(userPayload.userId, { select: ['telegramSession', 'id', 'phone'], relations: ['channels'] }); // Получаем сущнонсть пользователя
-    const client = await this.telegramService.getTelegramClient(user.phone, user.telegramSession); // Получаем клиент
-    const newChannel = await this.channelsService.createChannel(dto, client); // Создаём канал
+    const newChannel = await this.telegramChannelService.createChannel(dto, phone, telegramSession); // Создаём канал
     const channelId = newChannel.chats[0].id.toString(); // Получаем id самого канала
     const channel = this.channelRepService.create({ channelId, title, about });//Создаём сущность канала
     user.channels.push(channel); // Добавляем в список всех элементов
@@ -38,8 +52,7 @@ export class ChannelService {
   async deleteChannel(userPayload: UserPayload, id: string) {
     const { phone, telegramSession } = userPayload; // Для канала и клиента
     const channel = await this.channelRepService.findById(id, { select: ['id', 'channelId'] }); //  Сущность канала
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession); // Получаем клиента
-    await this.channelsService.deleteChannel(channel.channelId, client); // Удаляем канал
+    await this.telegramChannelService.deleteChannel(channel.channelId, phone, telegramSession); // Удаляем канал
     return await this.channelRepService.delete(channel.id); // Удаляем из базы канал
 
   }
@@ -47,15 +60,13 @@ export class ChannelService {
 
   async getAllChannels(userPayload: UserPayload) {
     const { phone, telegramSession } = userPayload; // Для канала и клиента
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession); // Получаем клиента
     const user = await this.usersService.findByPhone(phone, { select: ['channels', 'id'], relations: ['channels'] })
-    return await this.channelsService.getAllChannels(client, user.channels);
+    return await this.telegramChannelService.getAllChannels(user.channels, phone, telegramSession);
   }
 
   async addChannel(userPayload: UserPayload, channelId: string) {
     const { phone, telegramSession } = userPayload; // Для канала и клиента
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession); // Получаем клиента
-    const channel = await this.channelsService.getChannelByChannelId(channelId, client);
+    const channel = await this.telegramChannelService.getChannelByChannelId(channelId, phone, telegramSession);
 
 
     const about = channel.fullChat.about; // Получаем описание
@@ -78,8 +89,7 @@ export class ChannelService {
     const { phone, telegramSession } = userPayload; // Для канала и клиента
     const { title, id } = dto; // Для изменения заголовка у определённого канала
     const channel = await this.channelRepService.findById(id, { select: ['title', 'id', 'channelId'] }); //  Сущность канала
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession); // Получаем клиента
-    await this.channelsService.editTitle(title, channel.channelId, client); // Меняем заголовок
+    await this.telegramChannelService.editTitle(title, channel.channelId, phone, telegramSession); // Меняем заголовок
     channel.title = title; // Для Базы-данных
     return await this.channelRepService.save(channel); // Сохраняем заголовок и возвращаем сущность канала
   }
@@ -89,8 +99,7 @@ export class ChannelService {
     const { phone, telegramSession } = userPayload; // Для канала и клиента
     const { id } = dto; // Для изменения фото у определённого канала
     const channel = await this.channelRepService.findById(id, { select: ['title', 'id', 'channelId'] }); //  Сущность канала
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession); // Получаем клиента
-    await this.channelsService.editPhoto(photo, channel, client); // Меняем фото
+    await this.telegramChannelService.editPhoto(photo, channel, phone, telegramSession); // Меняем фото
     return this.uploadChannelService.savePhoto(photo, id.toString(), channel);
   }
 }

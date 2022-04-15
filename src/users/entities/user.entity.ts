@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { PostsEntity } from 'src/posts/entities/posts.entity';
 import { Role } from '../enums/role.enum';
 import { ChannelsEntity } from 'src/channels/entities/channels.entitiy';
 

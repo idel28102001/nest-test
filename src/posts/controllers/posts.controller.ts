@@ -15,43 +15,45 @@ import { GetUser, UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { PostDto } from 'src/posts/dto/post.dto';
-import { PostsService } from 'src/posts/services/posts.service';
 import { UploadDto } from 'src/uploadM/dto/upload.dto';
 import { Role } from 'src/users/enums/role.enum';
+import { PostChannelDto } from '../dto/post-channel.dto';
+import { PostsChannelService } from '../services/posts-channel.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('post')
 export class PostsController {
-  constructor(private readonly newsService: PostsService) {}
+  constructor(private readonly postsChannelService: PostsChannelService) {}
 
-  @Post()
-  @UseInterceptors(FilesInterceptor('files'))
-  @Roles(Role.ADMIN)
-  async createPost(
-    @UploadedFiles() content: Array<UploadDto>,
-    @Body() dto: PostDto,
-    @GetUser() user: UserPayload,
-  ) {
-    return await this.newsService.makePost(
-      dto, content,
-      user,
-    );
-  }
+  // @Post()
+  // @UseInterceptors(FilesInterceptor('files'))
+  // @Roles(Role.ADMIN)
+  // async createPost(
+  //   @UploadedFiles() content: Array<UploadDto>,
+  //   @Body() dto: PostChannelDto,
+  //   @GetUser() user: UserPayload,
+  // ) {
+  //   return await this.newsService.makePost(
+  //     dto, content,
+  //     user,
+  //   );
+  // }
+
+
   @Get(':id')
   @Roles(Role.ADMIN)
   async findPost(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.newsService.getPostById(id);
+    return await this.postsChannelService.getPostById(id);
   }
 
   @Get()
   @Roles(Role.ADMIN)
   async getAllPosts() {
-    return await this.newsService.getAllPosts();
+    return await this.postsChannelService.getAllPosts();
   }
   @Delete(':id')
   @Roles(Role.ADMIN)
   async deletePost(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.newsService.deletePost(id);
+    return await this.postsChannelService.deletePost(id);
   }
 }

@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { config } from 'src/common/config';
-import { PostDto } from 'src/posts/dto/post.dto';
 import { Markup, Telegraf } from 'telegraf';
 import { StringSession } from 'telegram/sessions';
 import { TelegramClient } from 'telegram';
 import { Repository } from 'typeorm';
 import { TelegramEntity } from '../entities/telegram.entity';
 import * as BigInt from 'big-integer';
+import { PostChannelDto } from 'src/posts/dto/post-channel.dto';
 
 @Injectable()
 export class TelegramService {
@@ -86,8 +86,8 @@ export class TelegramService {
     return (await this.telegramRepository.find()).map(e => e.telegramId);
   }
 
-  async sendAllUsers(users: number[], post: PostDto, postId: string) {
-    await Promise.all(users.map(e => this.app.telegram.sendMessage(e, `<b>${post.title}</b>\n${post.announcement}`, {
+  async sendAllUsers(users: number[], post: PostChannelDto, postId: string) {
+    await Promise.all(users.map(e => this.app.telegram.sendMessage(e, `<b>${post.title}</b>\n${post.description}`, {
       parse_mode: 'HTML', ...Markup.inlineKeyboard([
         Markup.button.callback('Читать полностью...', `Read-(${postId})`),
       ])
