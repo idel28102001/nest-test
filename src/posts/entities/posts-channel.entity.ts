@@ -1,5 +1,5 @@
 import { ChannelsEntity } from 'src/channels/entities/channels.entitiy';
-import { UploadPostEntity } from 'src/uploadM/entities/upload-post.entity';
+import { UploadFileEntity } from 'src/upload/entities/upload-file.entity';
 import {
   Entity,
   ManyToOne,
@@ -15,9 +15,9 @@ export class PostsChannelEntity extends PostsEntity {
   })
   channel: ChannelsEntity;
 
-  @OneToMany(() => UploadPostEntity, upload => upload.post, {
+  @OneToMany(() => UploadFileEntity, upload => upload.channelPost, {
     onDelete: 'SET NULL',
     cascade: true,
   })
-  uploads: UploadPostEntity[];
+  uploads: UploadFileEntity[];
 }

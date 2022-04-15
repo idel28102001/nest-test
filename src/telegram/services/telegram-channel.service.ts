@@ -2,35 +2,35 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateChannelDto } from 'src/channels/dto/create-channel.dto';
 import { Api, TelegramClient } from 'telegram';
 import { ChannelsEntity } from '../../channels/entities/channels.entitiy';
-import { UploadDto } from 'src/uploadM/dto/upload.dto';
+import { UploadDto } from 'src/upload/dto/upload.dto';
 import { getDialogsInterface } from '../../channels/interfaces/get-dialogs.interface';
 import { CustomFile } from 'telegram/client/uploads';
 import { TelegramService } from './telegram.service';
 import { UserPayload } from 'src/auth/decorators/get-user.decorator';
-import { PostsChannelEntity } from 'src/posts/entities/posts-channel.entity';
 import { PostChannelDto } from 'src/posts/dto/post-channel.dto';
 import { TelegramMessagesService } from './telegram-messages.service';
 
 @Injectable()
 export class TelegramChannelService {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor(
     private readonly telegramService: TelegramService,
-    private readonly telegramMessagesService: TelegramMessagesService, 
+    private readonly telegramMessagesService: TelegramMessagesService,
   ) {}
 
-  async sendPost(userPayload: UserPayload, chId: string, postDto: PostChannelDto, posts: UploadDto[]) {
-    await this.sendTextPost(postDto, chId, userPayload);
-    return await this.telegramMessagesService.sendMedia(posts, chId, userPayload);
+  async sendPost(userPayload: UserPayload, postDto: PostChannelDto, posts: UploadDto[], client: TelegramClient, peer: any) {
+    await this.sendTextPost(postDto, client, peer);
+    return await this.telegramMessagesService.sendMedia(posts, client, peer);
   }
 
-  async sendOneMedia(post: UploadDto, chId: string, userPayload: UserPayload) {
-    const { client, peer } = await this.telegramService.preparePropertiesForChannel(chId, userPayload);
+  async sendOneMedia(post: UploadDto, client: TelegramClient, peer: any) {
     return await this.telegramMessagesService.sendOneMedia(post, client, peer);
   }
 
-  async sendTextPost(postDto: PostChannelDto, chId: string, userPayload: UserPayload) {
-    const { client, peer } = await this.telegramService.preparePropertiesForChannel(chId, userPayload);
+  async preparePropertiesForChannel(chId: string, userPayload: UserPayload) {
+    return await this.telegramService.preparePropertiesForChannel(chId, userPayload);
+  }
+
+  async sendTextPost(postDto: PostChannelDto, client: TelegramClient, peer: any) {
     const text = `<strong>${postDto.title}</strong>\n${postDto.description}`;
     return await client.sendMessage(peer, { message: text, parseMode: 'html' });
   }

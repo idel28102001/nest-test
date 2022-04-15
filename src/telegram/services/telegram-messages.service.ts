@@ -1,15 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { UserPayload } from 'src/auth/decorators/get-user.decorator';
-import { UploadDto } from 'src/uploadM/dto/upload.dto';
+import { UploadDto } from 'src/upload/dto/upload.dto';
 import { Api, TelegramClient } from 'telegram';
 import { CustomFile, } from 'telegram/client/uploads';
-import { TelegramService } from './telegram.service';
 
 @Injectable()
 export class TelegramMessagesService {
-  constructor(
-    private readonly telegramService: TelegramService,
-  ) {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  constructor() {}
 
   async sendOneMedia(post: UploadDto, client: TelegramClient, peer: any) {
     let document: Api.InputMediaUploadedPhoto | Api.InputMediaUploadedDocument;
@@ -32,8 +29,7 @@ export class TelegramMessagesService {
     return await client.sendFile(peer, document);
   }
 
-  async sendMedia(post: UploadDto[], chId: string, userPayload: UserPayload) {
-    const { client, peer } = await this.telegramService.preparePropertiesForChannel(chId, userPayload);
+  async sendMedia(post: UploadDto[], client: TelegramClient, peer: any) {
     return await Promise.all(post.map(async e => {
       return await this.sendOneMedia(e, client, peer);
     }));

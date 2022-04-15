@@ -17,7 +17,7 @@ export class UploadChannelService extends UploadService<UploadDto> {
   async savePhoto(photo: UploadDto, id: string, channel: ChannelsEntity) {
     const photoE = await this.createUpload(photo);
     photoE.photoId = id;
-    channel.file = photoE;
+    channel.photo = photoE;
     return (await this.save(channel)).photo;
   }
 }

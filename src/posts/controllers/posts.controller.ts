@@ -15,7 +15,7 @@ import { GetUser, UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { UploadDto } from 'src/uploadM/dto/upload.dto';
+import { UploadDto } from 'src/upload/dto/upload.dto';
 import { Role } from 'src/users/enums/role.enum';
 import { PostChannelDto } from '../dto/post-channel.dto';
 import { PostsChannelService } from '../services/posts-channel.service';

@@ -4,7 +4,7 @@ import { GetUser, UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { CreateChannelDto } from 'src/channels/dto/create-channel.dto';
 import { PostChannelDto } from 'src/posts/dto/post-channel.dto';
-import { UploadDto } from 'src/uploadM/dto/upload.dto';
+import { UploadDto } from 'src/upload/dto/upload.dto';
 import { addChannelDto } from '../dto/add-channel.dto';
 import { editPhotoDto } from '../dto/edit-photo.dto';
 import { editTitleDto } from '../dto/edit-title.dto';

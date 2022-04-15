@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { getChannelInfoInterface } from 'src/channels/interfaces/get-channel-info.interface';
-import { UploadDto } from 'src/uploadM/dto/upload.dto';
+import { UploadDto } from 'src/upload/dto/upload.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/create-channel.dto';
 import { editPhotoDto } from '../dto/edit-photo.dto';
 import { editTitleDto } from '../dto/edit-title.dto';
 import { TelegramChannelService } from '../../telegram/services/telegram-channel.service';
 import { ChannelRepService } from './channel-rep.service';
-import { UploadChannelService } from 'src/uploadM/services/upload-channel.service';
+import { UploadChannelService } from 'src/upload/services/upload-channel.service';
 import { PostChannelDto } from 'src/posts/dto/post-channel.dto';
 import { PostsChannelService } from 'src/posts/services/posts-channel.service';
 
@@ -25,15 +25,11 @@ export class ChannelService {
 
   async makePost(user: UserPayload, postDto: PostChannelDto, uploadDto: UploadDto[]) {
     const channel = await this.channelRepService.findById(postDto.channelId, { relations: ['posts'], select: ['posts', 'id', 'channelId'] });
-    const post = await this.postsChannelService.createPost(postDto, uploadDto);
-    const result = await this.postsChannelService.sendPost(user, channel.channelId, postDto, uploadDto);
-    console.log(result);
-    // user.posts.push(post);
-    // const result = await this.usersService.save(user);
-    // const lastPost = result.posts.slice(-1)[0];
-    // await this.sendMessage(postDto, lastPost.id);
-    // return lastPost;
-    // return [post, channel];
+    const post = await this.postsChannelService.sendPost(user, channel.channelId, postDto, uploadDto);
+    channel.posts.push(post);
+    const result = await this.channelRepService.save(channel);
+    const lastPost = result.posts.slice(-1)[0];
+    return lastPost;
   }
 
 

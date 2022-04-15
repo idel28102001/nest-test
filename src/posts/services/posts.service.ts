@@ -1,32 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindOneOptions } from 'typeorm';
-import { UploadDto } from '../../uploadM/dto/upload.dto';
+import { UploadDto } from '../../upload/dto/upload.dto';
 import * as fs from 'fs';
 import { PostDto } from '../dto/post.dto';
-import { UploadPostEntity } from 'src/uploadM/entities/upload-post.entity';
-import { PostsUploadService } from './posts-upload.service';
-import { PostsChannelEntity } from '../entities/posts-channel.entity';
 
 @Injectable()
-export class PostsService<T> {
+export class PostsService<T, V> {
   readonly repository: any;
-  readonly PostUploadService: any;
+  readonly uploadService: any;
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() {}
 
-  async createPost(postDto: PostDto, uploadDto: UploadDto[]) {
-    const post = this.repository.create(postDto);
-    post.uploads = await this.createUploads(uploadDto);
-    return post;
+  createPost(postDto: PostDto): T {
+    return this.repository.create(postDto);
   }
 
-  async createUpload(uploadDto: UploadDto): Promise<UploadPostEntity> {
-    const response = await this.PostUploadService.createUpload(uploadDto); ///ТУТ ПОРАБОТАТЬ!!!!
+  async createUpload(uploadDto: UploadDto): Promise<V> {
+    const response = await this.uploadService.createUpload(uploadDto);
     this.saveInFolder(response.url, response.dir, uploadDto.buffer);
     return response;
   }
 
-  async createUploads(uploadDto: UploadDto[]): Promise<UploadPostEntity[]> {
+  async createUploads(uploadDto: UploadDto[]): Promise<V[]> {
     return await Promise.all(
       uploadDto.map((e) => this.createUpload(e)),
     );

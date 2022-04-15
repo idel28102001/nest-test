@@ -3,14 +3,14 @@ import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { UploadEntity } from './upload.entity';
 
 @Entity({ name: 'upload_photo' })
-export class UploadFileEntity extends UploadEntity {
+export class UploadPhotoEntity extends UploadEntity {
 
-  @OneToOne(() => ChannelsEntity, channel => channel.file, {
+  @OneToOne(() => ChannelsEntity, channel => channel.photo, {
     onDelete: 'CASCADE'
   })
   @JoinColumn()
   channel: ChannelsEntity;
 
   @Column({ nullable: true })
-  photoId: string;
+  fileId: string;
 }

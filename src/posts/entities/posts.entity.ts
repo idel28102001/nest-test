@@ -17,4 +17,7 @@ export class PostsEntity {
 
   @Column('text')
   description: string;
+
+  @Column({default: null})
+  postId: string;
 }
