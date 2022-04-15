@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { config } from 'src/common/config';
 import { Markup, Telegraf } from 'telegraf';
@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { TelegramEntity } from '../entities/telegram.entity';
 import * as BigInt from 'big-integer';
 import { PostChannelDto } from 'src/posts/dto/post-channel.dto';
+import { UserPayload } from 'src/auth/decorators/get-user.decorator';
 
 @Injectable()
 export class TelegramService {
@@ -18,6 +19,12 @@ export class TelegramService {
   private clients: Map<string, TelegramClient> = new Map()
 
 
+  async preparePropertiesForChannel(chId: string, userPayload: UserPayload) {
+    const { phone, telegramSession } = userPayload;
+    const client = await this.getTelegramClient(phone, telegramSession);
+    const peer = await this.makeIdChannel(chId, client);
+    return { client, peer }
+  }
 
   async makeIdChannel(chanId: string, client: TelegramClient) {
     const id = BigInt(`${'-100'}${chanId}`);
@@ -51,17 +58,26 @@ export class TelegramService {
 
 
   async getTelegramClient(phone: string, session = '') {
-    if (this.clients.has(phone)) return this.clients.get(phone); // Возвращаем клиента, если таковой - есть
-    const telegramConfig = config.getTelegramConfig(); // Получаем конфиг от приложения телеграма
-    const stringSession = new StringSession(session); // Создаём сессию
-    const client = new TelegramClient( // Создаем клиента
-      stringSession,
-      telegramConfig.apiId,
-      telegramConfig.apiHash,
-      { connectionRetries: 5 }
-    )
-    this.clients.set(phone, client); // Сохраняем в "базу"
+    let client: TelegramClient;
+    if (this.clients.has(phone)) {
+      client = this.clients.get(phone)
+    } // Записываем если таковой - есть
+    else {
+      const telegramConfig = config.getTelegramConfig(); // Получаем конфиг от приложения телеграма
+      const stringSession = new StringSession(session); // Создаём сессию
+      client = new TelegramClient( // Создаем клиента
+        stringSession,
+        telegramConfig.apiId,
+        telegramConfig.apiHash,
+        { connectionRetries: 5 }
+      )
+      this.clients.set(phone, client); // Сохраняем в "базу"
+    }
     await client.connect() // Конектимся
+    if (!await client.checkAuthorization()) { // Проверяем - действительна ли сессия
+      this.clients.delete(phone); //Удаляем из базы
+      throw new UnauthorizedException('Сессия недействительна');
+    }
     return client; // Вовзращаем
   }
 

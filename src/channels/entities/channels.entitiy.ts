@@ -1,5 +1,5 @@
 import { PostsChannelEntity } from 'src/posts/entities/posts-channel.entity';
-import { ChannelPhotoEntity } from 'src/uploadM/entities/channel-photo.entity';
+import { UploadFileEntity } from 'src/uploadM/entities/upload-file.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
@@ -26,8 +26,8 @@ export class ChannelsEntity {
   @ManyToOne(() => UserEntity, user => user.channels, { 'onDelete': 'SET NULL' })
   user: UserEntity;
 
-  @OneToOne(() => ChannelPhotoEntity, photo => photo.channel, { cascade: true })
-  photo: ChannelPhotoEntity;
+  @OneToOne(() => UploadFileEntity, file => file.channel, { cascade: true })
+  file: UploadFileEntity;
 
 
   @OneToMany(() => PostsChannelEntity, (post) => post.channel, {

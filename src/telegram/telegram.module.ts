@@ -10,7 +10,7 @@ import { TelegramEntity } from './entities/telegram.entity';
 import { TelegramAuthService } from './services/telegram-auth.service';
 import { TelegramMessagesService } from './services/telegram-messages.service';
 import { TelegramService } from './services/telegram.service';
-import { TelegramChannelService } from './services/telegramm-channel.service';
+import { TelegramChannelService } from './services/telegram-channel.service';
 //import { TelegramUpdate } from './update/telegram.update';
 
 

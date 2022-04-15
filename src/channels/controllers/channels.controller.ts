@@ -26,8 +26,7 @@ export class ChannelController {
     @GetUser() user: UserPayload,
   ) {
     return await this.channelService.makePost(
-      dto, content,
-      user,
+      user, dto, content
     );
   }
 

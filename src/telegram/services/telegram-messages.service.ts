@@ -1,28 +1,71 @@
 import { Injectable } from '@nestjs/common';
+import { UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { UploadDto } from 'src/uploadM/dto/upload.dto';
 import { Api, TelegramClient } from 'telegram';
-import { CustomFile } from 'telegram/client/uploads';
+import { CustomFile, } from 'telegram/client/uploads';
 import { TelegramService } from './telegram.service';
 
 @Injectable()
 export class TelegramMessagesService {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor(private readonly telegramService: TelegramService) {}
+  constructor(
+    private readonly telegramService: TelegramService,
+  ) {}
 
-  async sendMedia(post: UploadDto, client: TelegramClient, peer: any) {
-    const media = await this.preparePhoto(post, client);
-    return new Api.messages.SendMedia({ peer, media, message: '' });
+  async sendOneMedia(post: UploadDto, client: TelegramClient, peer: any) {
+    let document: Api.InputMediaUploadedPhoto | Api.InputMediaUploadedDocument;
+    const file = await this.prepareFile(post, client); // Подготовить файл
+    const [mimetype, secondType] = post.mimetype.split('/');
+    switch (mimetype) {
+      case 'audio': {
+        document = await this.prepareAudio(file, post);
+        break;
+      }
+      case 'image': {
+        document = await this.prepareImageType(file, post, secondType);
+        break;
+      }
+      case 'video': {
+        document = await this.prepareVideo(file, post);
+        break;
+      }
+    }
+    return await client.sendFile(peer, document);
+  }
+
+  async sendMedia(post: UploadDto[], chId: string, userPayload: UserPayload) {
+    const { client, peer } = await this.telegramService.preparePropertiesForChannel(chId, userPayload);
+    return await Promise.all(post.map(async e => {
+      return await this.sendOneMedia(e, client, peer);
+    }));
+  }
+
+  async prepareImageType(file: Api.InputFile | Api.InputFileBig, post: UploadDto, secondType) {
+    switch (secondType) {
+      case 'gif': {
+        return await this.prepareGif(file, post);
+      }
+      default: {
+        return await this.preparePhoto(file);
+      }
+    }
   }
 
 
 
-  async preparePhoto(post: UploadDto, client: TelegramClient) {
-    const file = await this.prepareFile(post, client);
+  async preparePhoto(file: Api.InputFile | Api.InputFileBig) {
     return new Api.InputMediaUploadedPhoto({ file })
   }
+  async prepareVideo(file: Api.InputFile | Api.InputFileBig, post: UploadDto) {
+    return new Api.InputMediaUploadedDocument({ file, mimeType: post.mimetype, attributes: [] })
+  }
 
-  async prepareDocument(post: UploadDto, client: TelegramClient) {
-    const file = await this.prepareFile(post, client);
+  async prepareAudio(file: Api.InputFile | Api.InputFileBig, post: UploadDto) {
+    const title = post.originalname.split('.').slice(0, -1).join('.');
+    const audio = new Api.DocumentAttributeAudio({ title, duration: post.size / 22050 });
+    return new Api.InputMediaUploadedDocument({ file, mimeType: post.mimetype, attributes: [audio] })
+  }
+
+  async prepareGif(file: Api.InputFile | Api.InputFileBig, post: UploadDto) {
     return new Api.InputMediaUploadedDocument({ file, mimeType: post.mimetype, attributes: [] })
   }
 

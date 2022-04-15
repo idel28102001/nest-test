@@ -7,9 +7,9 @@ import { Context } from 'vm';
 import { Context as Ctx } from 'telegraf';
 import { UsersService } from 'src/users/services/users.service';
 import { PostDto } from '../dto/post.dto';
-import { PostUploadEntity } from 'src/uploadM/entities/post-upload.entity';
+import { UploadPostEntity } from 'src/uploadM/entities/upload-post.entity';
 import { ChannelService } from 'src/channels/services/channel.service';
-import { UploadPostService } from './upload-post.service';
+import { PostsUploadService } from './posts-upload.service';
 import { ChannelRepService } from 'src/channels/services/channel-rep.service';
 import { UserPayload } from 'src/auth/decorators/get-user.decorator';
 import { Api, TelegramClient } from 'telegram';
@@ -18,14 +18,14 @@ import { TelegramMessagesService } from 'src/telegram/services/telegram-messages
 import { PostChannelDto } from '../dto/post-channel.dto';
 import { PostsChannelEntity } from '../entities/posts-channel.entity';
 import { PostsService } from './posts.service';
-import { TelegramChannelService } from 'src/telegram/services/telegramm-channel.service';
+import { TelegramChannelService } from 'src/telegram/services/telegram-channel.service';
 
 @Injectable()
 export class PostsChannelService extends PostsService<PostsChannelEntity> {
   constructor(
     @InjectRepository(PostsChannelEntity)
     readonly repository: Repository<PostsChannelEntity>,
-    readonly uploadPostService: UploadPostService,
+    readonly uploadPostService: PostsUploadService,
     private readonly telegramChannelService: TelegramChannelService,
     // private readonly uploadPostService: UploadPostService,
     //private readonly telegramMessagesService: TelegramMessagesService,
@@ -34,10 +34,14 @@ export class PostsChannelService extends PostsService<PostsChannelEntity> {
     super()
   }
 
-  async sendPost(userPayload: UserPayload, channelId: string, uploadDto: UploadDto[]) {
-    // console.log(phone, telegramSession, channelId, uploadDto);
-    // await this.telegramChannelService.sendPost(userPayload);
-
+  async sendPost(userPayload: UserPayload, channelId: string, postDto: PostChannelDto, uploadDto: UploadDto[]) {
+    const textPost = await this.telegramChannelService.sendTextPost(postDto, channelId, userPayload);
+    Promise.all(uploadDto.map(async e=>{
+      const media = await this.telegramChannelService.sendOneMedia(e, channelId, userPayload);
+      const post = await this.createUpload(e);
+      console.log(media);
+    }));
+    console.log(textPost);
   }
 
 
@@ -64,11 +68,11 @@ export class PostsChannelService extends PostsService<PostsChannelEntity> {
   // }
 
 
-  // async sendMedias(ctx: Context, content: PostUploadEntity[]) {
+  // async sendMedias(ctx: Context, content: UploadPostEntity[]) {
   //   await Promise.all(this.createMediaPromises(ctx, content));
   // }
 
-  // createMediaPromises(ctx: Context, content: PostUploadEntity[]) {
+  // createMediaPromises(ctx: Context, content: UploadPostEntity[]) {
   //   return content.map(cnt => {
   //     const currType = cnt.mimetype.split('/')[0];
   //     switch (currType) {

@@ -3,14 +3,14 @@ import { FindOneOptions } from 'typeorm';
 import { UploadDto } from '../../uploadM/dto/upload.dto';
 import * as fs from 'fs';
 import { PostDto } from '../dto/post.dto';
-import { PostUploadEntity } from 'src/uploadM/entities/post-upload.entity';
-import { UploadPostService } from './upload-post.service';
+import { UploadPostEntity } from 'src/uploadM/entities/upload-post.entity';
+import { PostsUploadService } from './posts-upload.service';
 import { PostsChannelEntity } from '../entities/posts-channel.entity';
 
 @Injectable()
 export class PostsService<T> {
   readonly repository: any;
-  readonly uploadPostService: any;
+  readonly PostUploadService: any;
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() {}
 
@@ -20,18 +20,18 @@ export class PostsService<T> {
     return post;
   }
 
-  async createUploads(uploadDto: UploadDto[]): Promise<PostUploadEntity[]> {
-    const allUploads = [];
-    await Promise.all(
-      uploadDto.map(async (e) => {
-        const response = this.uploadPostService.createUpload(e);
-        allUploads.push(response);
-        this.saveInFolder(response.url, response.dir, e.buffer);
-        return response;
-      }),
-    );
-    return allUploads;
+  async createUpload(uploadDto: UploadDto): Promise<UploadPostEntity> {
+    const response = await this.PostUploadService.createUpload(uploadDto); ///ТУТ ПОРАБОТАТЬ!!!!
+    this.saveInFolder(response.url, response.dir, uploadDto.buffer);
+    return response;
   }
+
+  async createUploads(uploadDto: UploadDto[]): Promise<UploadPostEntity[]> {
+    return await Promise.all(
+      uploadDto.map((e) => this.createUpload(e)),
+    );
+  }
+
 
 
   saveInFolder(src: string, dir: string, buffer: Buffer) {

@@ -6,7 +6,7 @@ import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/create-channel.dto';
 import { editPhotoDto } from '../dto/edit-photo.dto';
 import { editTitleDto } from '../dto/edit-title.dto';
-import { TelegramChannelService } from '../../telegram/services/telegramm-channel.service';
+import { TelegramChannelService } from '../../telegram/services/telegram-channel.service';
 import { ChannelRepService } from './channel-rep.service';
 import { UploadChannelService } from 'src/uploadM/services/upload-channel.service';
 import { PostChannelDto } from 'src/posts/dto/post-channel.dto';
@@ -23,10 +23,11 @@ export class ChannelService {
   ) {}
 
 
-  async makePost(postDto: PostChannelDto, uploadDto: UploadDto[], user: UserPayload) {
+  async makePost(user: UserPayload, postDto: PostChannelDto, uploadDto: UploadDto[]) {
     const channel = await this.channelRepService.findById(postDto.channelId, { relations: ['posts'], select: ['posts', 'id', 'channelId'] });
     const post = await this.postsChannelService.createPost(postDto, uploadDto);
-    await this.postsChannelService.sendPost(user, channel.channelId, uploadDto);
+    const result = await this.postsChannelService.sendPost(user, channel.channelId, postDto, uploadDto);
+    console.log(result);
     // user.posts.push(post);
     // const result = await this.usersService.save(user);
     // const lastPost = result.posts.slice(-1)[0];
