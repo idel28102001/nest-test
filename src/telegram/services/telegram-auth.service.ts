@@ -7,7 +7,7 @@ import { TelegramService } from './telegram.service';
 @Injectable()
 export class TelegramAuthService {
   constructor(private readonly service: TelegramService,
-    private readonly usersService: UsersService,
+    private readonly usersService: UsersService, // Для доступа к пользователям
   ) {}
 
   async sendCode(phone: string | undefined) {

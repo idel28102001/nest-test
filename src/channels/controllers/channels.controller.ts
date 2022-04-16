@@ -18,11 +18,11 @@ export class ChannelController {
 
 
   @UseGuards(JwtAuthGuard)
-  @Post('post')
+  @Post('post') // Постим данные и файлы
   @UseInterceptors(FilesInterceptor('files'))
   async createPost(
-    @UploadedFiles() content: Array<UploadDto>,
-    @Body() dto: PostChannelDto,
+    @UploadedFiles() content: Array<UploadDto>, // Получаем массив файлов
+    @Body() dto: PostChannelDto, // Получаем данные по заголовку и описанию
     @GetUser() user: UserPayload,
   ) {
     return await this.channelService.makePost(
@@ -32,25 +32,27 @@ export class ChannelController {
 
 
   @UseGuards(JwtAuthGuard)
-  @Post('create')
+  @Post('create') // Создаём канал
   async createChannel(
-    @GetUser() user: UserPayload, @Body() dto: CreateChannelDto
+    @GetUser() user: UserPayload,
+    @Body() dto: CreateChannelDto // Получаем описание желаемого канала
   ) {
     return await this.channelService.createChannel(user, dto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('title')
+  @Patch('title') // Изменяем заголовок канала
   async editTitle(
-    @GetUser() user: UserPayload, @Body() dto: editTitleDto
+    @GetUser() user: UserPayload, 
+    @Body() dto: editTitleDto // Получаем заголовок
   ) {
     return await this.channelService.editTitle(user, dto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  async deleteChannel(@GetUser() user: UserPayload, @Param('id') id: string) {
-    return await this.channelService.deleteChannel(user, id);
+  @Delete(':id') // Удаляем канал по его ID в БД
+  async deleteChannel(@Param('id') id: string, @GetUser() user: UserPayload) {
+    return await this.channelService.deleteChannel(id, user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -61,8 +63,8 @@ export class ChannelController {
 
   @UseGuards(JwtAuthGuard)
   @Post('add')
-  async addChannel(@GetUser() user: UserPayload, @Body() dto: addChannelDto) {
-    return await this.channelService.addChannel(user, dto.channelId);
+  async addChannel(@Body() dto: addChannelDto, @GetUser() user: UserPayload) {
+    return await this.channelService.addChannel(dto.channelId, user);
   }
 
   @UseGuards(JwtAuthGuard)

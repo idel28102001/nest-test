@@ -24,8 +24,8 @@ export class ValidateService {
     return true;
   }
 
-  async checkRoleExists(username: string, role: Role, reverse = false) {
-    const user = await this.usersService.findByUsername(username);
+  async checkRoleExists(id: string, role: Role, reverse = false) {
+    const user = await this.usersService.findById(id);
     let haveRole = user.roles.includes(role);
     haveRole = reverse ? !haveRole : haveRole;
     const text = reverse ? 'уже есть' : 'отсутсвует'

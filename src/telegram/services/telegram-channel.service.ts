@@ -17,31 +17,30 @@ export class TelegramChannelService {
     private readonly telegramMessagesService: TelegramMessagesService,
   ) {}
 
-  async sendPost(userPayload: UserPayload, postDto: PostChannelDto, posts: UploadDto[], client: TelegramClient, peer: any) {
-    await this.sendTextPost(postDto, client, peer);
-    return await this.telegramMessagesService.sendMedia(posts, client, peer);
+  async sendPost(postDto: PostChannelDto, posts: UploadDto[], client: TelegramClient, peer: any) {
+    await this.sendTextPost(postDto, client, peer); // Отправляем текстовый пост
+    return await this.telegramMessagesService.sendMedia(posts, client, peer); // Отправляем всё медиа
   }
 
-  async sendOneMedia(post: UploadDto, client: TelegramClient, peer: any) {
+  async sendOneMedia(post: UploadDto, client: TelegramClient, peer: any) { // Отправляем один медиа файл
     return await this.telegramMessagesService.sendOneMedia(post, client, peer);
   }
 
-  async preparePropertiesForChannel(chId: string, userPayload: UserPayload) {
+  async preparePropertiesForChannel(chId: string, userPayload: UserPayload) { // Доп. функция для переиспользования в другом модуле(чтобы лишний раз не подгружать telegramSerice ради одной функции)
     return await this.telegramService.preparePropertiesForChannel(chId, userPayload);
   }
 
-  async sendTextPost(postDto: PostChannelDto, client: TelegramClient, peer: any) {
-    const text = `<strong>${postDto.title}</strong>\n${postDto.description}`;
-    return await client.sendMessage(peer, { message: text, parseMode: 'html' });
+  async sendTextPost(postDto: PostChannelDto, client: TelegramClient, peer: any) {// Отправляем текстовый файл
+    const text = `<strong>${postDto.title}</strong>\n${postDto.description}`; // Готовим текст для отправки
+    return await client.sendMessage(peer, { message: text, parseMode: 'html' }); // Отправляем с парсин модом - "HTML"
   }
 
 
 
-  async deleteChannel(id: string, phone: string, telegramSession?: string) {
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession); // Получаем клиент
-    const channelId = await this.telegramService.makeIdChannel(id, client); // Создаём "Id-канала"
+  async deleteChannel(channelId: string, userPayload: UserPayload) {
+    const { client, peer } = await this.telegramService.preparePropertiesForChannel(channelId, userPayload); // Для канала и клиента
     try {
-      return await client.invoke(new Api.channels.DeleteChannel({ channel: channelId })) // Меняем заголовок
+      return await client.invoke(new Api.channels.DeleteChannel({ channel: peer })) // Меняем заголовок
     } catch (err) {
       throw new BadRequestException(err);
     }
@@ -49,13 +48,15 @@ export class TelegramChannelService {
 
   async getAllChannels(channelsE: ChannelsEntity[], phone: string, telegramSession?: string) {
     const client = await this.telegramService.getTelegramClient(phone, telegramSession); // Получаем клиент
-    const channels = new Map();
+    const channels = new Map(); // Создаём коллекцию 'channelID(из БД) - id(Из телеграма)'
     channelsE.forEach(e => {
       channels.set(e.channelId, e.id);
     });
     return (await client.getDialogs({}) as unknown as getDialogsInterface[]) // Получаем весь список диалогов
       .filter((dialog) => dialog.isChannel && dialog.entity.creator) // Фильтруем по типу диалога и по "создателю"
-      .map(e => { return { channelId: e.entity.id, title: e.title, id: channels.get(e.entity.id.toString()) || null } }) // Возвращаем объекты
+      .map(e => { return { channelId: e.entity.id, title: e.title, 
+        id: channels.get(e.entity.id.toString()) || null // Проверка на наличие id в БД
+       } }) // Возвращаем объекты
   }
 
   async createChannel(dto: CreateChannelDto, phone: string, telegramSession?: string): Promise<Api.Updates> {
@@ -68,22 +69,20 @@ export class TelegramChannelService {
     }
   }
 
-  async editTitle(title: string, id: string, phone: string, telegramSession?: string) {
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession);
-    const channelId = await this.telegramService.makeIdChannel(id, client); // Создаём "Id-канала"
+  async editTitle(title: string,userPayload: UserPayload, channelId: string) {
+    const { client, peer } = await this.telegramService.preparePropertiesForChannel(channelId, userPayload); // Для канала и клиента
     try {
-      return await client.invoke(new Api.channels.EditTitle({ channel: channelId, title })) // Меняем заголовок
+      return await client.invoke(new Api.channels.EditTitle({ channel: peer, title })) // Меняем заголовок
     } catch (err) {
       throw new BadRequestException(err);
     }
   }
 
 
-  async getChannelByChannelId(id: string, phone: string, telegramSession?: string) {
-    const client = await this.telegramService.getTelegramClient(phone, telegramSession);
-    const channel = await this.telegramService.makeIdChannel(id, client);
+  async getChannelByChannelId(channelId: string, userPayload: UserPayload) {
+    const { client, peer } = await this.telegramService.preparePropertiesForChannel(channelId, userPayload); // Для канала и клиента
     try {
-      return await client.invoke(new Api.channels.GetFullChannel({ channel }));
+      return await client.invoke(new Api.channels.GetFullChannel({ channel: peer })); // Возвращаем полные данные по каналу
     } catch (err) {
       throw new BadRequestException(err);
     }

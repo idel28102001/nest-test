@@ -10,12 +10,12 @@ import { PostsEntity } from './posts.entity';
 @Entity({ name: 'posts_channel' })
 export class PostsChannelEntity extends PostsEntity {
 
-  @ManyToOne(() => ChannelsEntity, (user) => user.posts, {
+  @ManyToOne(() => ChannelsEntity, (user) => user.posts, { // Связываем с каналом 
     onDelete: 'SET NULL',
   })
   channel: ChannelsEntity;
 
-  @OneToMany(() => UploadFileEntity, upload => upload.channelPost, {
+  @OneToMany(() => UploadFileEntity, upload => upload.channelPost, { // Связываем с загружаемыми файлами
     onDelete: 'SET NULL',
     cascade: true,
   })

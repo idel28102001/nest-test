@@ -12,6 +12,7 @@ export class PostsEntity {
 
   @CreateDateColumn()
   postedAt: Date;
+
   @Column()
   title: string;
 

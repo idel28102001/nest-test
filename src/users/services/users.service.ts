@@ -56,9 +56,8 @@ export class UsersService {
     }
   }
 
-  async unmakeAdmin(data: userFind) {
-    const user = await this.userRepository.findOne(
-      data);
+  async unmakeAdmin(id: string) {
+    const user = await this.userRepository.findOne(id);
     if (user.roles.includes(Role.ADMIN)) {
       user.roles = this.removeRole(user.roles, Role.ADMIN);
       return await this.userRepository.save(user);

@@ -44,7 +44,7 @@ export class AuthService {
     });
   }
 
-  async unmakeAdmin(dto: { username: string }) {
-    return await this.userService.unmakeAdmin(dto);
+  async unmakeAdmin(id: string) {
+    return await this.userService.unmakeAdmin(id);
   }
 }

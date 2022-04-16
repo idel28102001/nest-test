@@ -14,10 +14,10 @@ export class UploadService<T> {
   }
 
   createUpload(content: T) {
-    const response = this.repository.create(content);
-    response.mimetype = response.mimetype.split('/')[0];
-    response.dir = `upload/${response.mimetype}`;
-    response.url = `${response.dir}/${response.originalname}`;
-    return response;
+    const response = this.repository.create(content); // Создаём сущность загружаемого файла
+    const mimeType = response.mimetype.split('/')[0]; // Получаем его тип
+    response.dir = `upload/${mimeType}`; // Указываем путь до папки
+    response.url = `${response.dir}/${response.originalname}`; // Указываем ему полный путь
+    return response; // Возвращаем
   }
 }

@@ -14,31 +14,29 @@ import { UploadFileEntity } from 'src/upload/entities/upload-file.entity';
 export class PostsChannelService extends PostsService<PostsChannelEntity, UploadFileEntity> {
   constructor(
     @InjectRepository(PostsChannelEntity)
-    readonly repository: Repository<PostsChannelEntity>,
-    readonly uploadService: UploadChannelService,
-    private readonly telegramChannelService: TelegramChannelService,
+    readonly repository: Repository<PostsChannelEntity>, // Определяем наш главный репозиторий как "Посты Канала"
+    readonly uploadService: UploadChannelService, // Определяем наш сохраняющий файлов в папку как "Загрузки Канала"
+    private readonly telegramChannelService: TelegramChannelService, // Сервис для отправки в телеграм канал данных
   ) {
     super()
   }
 
   async sendPost(userPayload: UserPayload, channelId: string, postDto: PostChannelDto, uploadDto: UploadDto[]) {
-    const {client, peer} = await this.telegramChannelService.preparePropertiesForChannel(channelId, userPayload);
-    const textPost = await this.telegramChannelService.sendTextPost(postDto, client, peer);
-    const post = this.makePost(postDto, textPost.id.toString());
-    post.uploads = await Promise.all(uploadDto.map(async e => {
-      const media = await this.telegramChannelService.sendOneMedia(e, client, peer);
-      const upload = await this.createUpload(e);
-      upload.fileId = media.id.toString();
-      return upload;
+    const {client, peer} = await this.telegramChannelService.preparePropertiesForChannel(channelId, userPayload); // Получаем данные по клиенту и саму "ссылку" на канал
+    const textPost = await this.telegramChannelService.sendTextPost(postDto, client, peer); // Отправляем текстовую часть поста
+    const post = this.makePost(postDto, textPost.id.toString()); // Создаём сущность поста
+    post.uploads = await Promise.all(uploadDto.map(async e => { // Устанавливаем посту коллекцию загружаемых объектов
+      const media = await this.telegramChannelService.sendOneMedia(e, client, peer); // Отправляем в телеграм канал текущее медиа
+      const upload = await this.createUpload(e); // Создаём сущность одного загружаемого файла
+      upload.fileId = media.id.toString(); // Добавляем ему id файла в телеграм канале
+      return upload; // Возвращаем сущность файла
     }));
-    return post;
+    return post; // Возвращаем сущность поста
   }
 
-  makePost(postDto: PostChannelDto, id: string) {
-    const post = this.createPost(postDto);
-    post.title = postDto.title;
-    post.description = postDto.description;
-    post.postId = id;
-    return post;
+  makePost(postDto: PostChannelDto, id: string) { // Создаём сущность поста
+    const post = this.createPost(postDto); // Создаём сущность поста
+    post.postId = id; // Добавляем ему ID в телеграм канале
+    return post; // Возвращаем
   }
 }

@@ -15,9 +15,9 @@ export class UploadChannelService extends UploadService<UploadDto> {
     super()
   }
   async savePhoto(photo: UploadDto, id: string, channel: ChannelsEntity) {
-    const photoE = await this.createUpload(photo);
-    photoE.photoId = id;
-    channel.photo = photoE;
-    return (await this.save(channel)).photo;
+    const photoE = await this.createUpload(photo); // Создаём сущность загружаемого файла(фото)
+    photoE.photoId = id; // Присваиваем ему его ID из телеграм канала 
+    channel.photo = photoE; // Записываем каналу его профильное фото
+    return (await this.save(channel)).photo; // Сохраняем и возвращаем
   }
 }

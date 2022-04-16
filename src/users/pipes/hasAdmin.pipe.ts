@@ -5,10 +5,10 @@ import { ValidateService } from '../services/validate.service';
 @Injectable()
 export class HasAdminPipe implements PipeTransform {
   constructor(private readonly validateService: ValidateService) { }
-  async transform(dto: { username: string }) {
-    if (dto.username) {
-      await this.validateService.checkRoleExists(dto.username, Role.ADMIN);
+  async transform(id: string) {
+    if (id) {
+      await this.validateService.checkRoleExists(id, Role.ADMIN);
     }
-    return dto;
+    return id;
   }
 }

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { ChannelsEntity } from '../entities/channels.entitiy';
-
+// Раздельный сервис для переиспользования нужных действий с репозиторием в других модулях
 @Injectable()
 export class ChannelRepService {
   constructor(
